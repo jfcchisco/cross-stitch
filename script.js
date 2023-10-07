@@ -143,6 +143,17 @@ function loadJSON(data) {
 
     //console.log(cols)
 
+    console.log(tileContainer.children.length);
+
+    if(tileContainer.children.length > 0) {
+        console.log("Removing all tiles...")
+        while (tileContainer.lastElementChild) { 
+            tileContainer.removeChild(tileContainer.lastElementChild);
+          }
+    
+    }
+    
+
     for(j=1; j<=rows; j++) {
 
     
@@ -597,8 +608,26 @@ function save() {
     
     var element = document.createElement('a');
 
+    // Date object
+    const date = new Date();
+
+    let currentDay= String(date.getDate()).padStart(2, '0');
+    let currentMonth = String(date.getMonth()+1).padStart(2,"0");
+    let currentYear = date.getFullYear();
+
+    let hour = String(date.getHours()).padStart(2, '0');
+    let mins = String(date.getMinutes()).padStart(2, '0');
+    let secs = String(date.getSeconds()).padStart(2, '0');
+    // we will display the date as DD-MM-YYYY 
+
+    let currentDate = `${currentDay}-${currentMonth}-${currentYear}_${hour}-${mins}-${secs}`;
+
+    let outFile = 'out_' + currentDate + '.json'; 
+
+    console.log("The current date is " + currentDate); 
+
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text2write));
-    element.setAttribute('download', 'out.json');
+    element.setAttribute('download', outFile);
 
     element.style.display = 'none';
     document.body.appendChild(element);
@@ -634,7 +663,7 @@ function openFile() {
             var reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (evt) {
-                console.log(evt.target.result);
+                //console.log(evt.target.result);
                 jsonContent = evt.target.result;
                 loadJSON(JSON.parse(jsonContent));
             }
@@ -801,209 +830,3 @@ window.onclick = function(event) {
 //MIN_ZOOM = Math.min(canvas.clientHeight / canvas.height, canvas.clientWidth / canvas.width);
 
 
-function draw() {
-    
-    //canvas.width = window.innerWidth
-    //canvas.height = window.innerHeight
-    //console.log(csvData);
-    //csvData = getCSV(csvFile);
-    //console.log(dataholder.innerHTML.split("\n"));
-
-    //jsonText = dataholder.getAttribute("data-json");
-    //jsonText = jsonText.replace("[",""); 
-    //jsonText = jsonText.replace("]","");
-    
-    
-    //console.log(jsonColors);
-    
-
-    //console.log(jsonObject[Object.keys(jsonObject).length-1]);
-
-    //var jsonObject = JSON.parse('[{"X":"0","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"1","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"2","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"3","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"4","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"5","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"6","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"7","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"8","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"9","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"10","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"11","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"12","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"13","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"14","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"15","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"16","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"17","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"18","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"19","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"20","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"21","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"22","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"23","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"24","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"25","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"26","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"27","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"28","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"29","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""},{"X":"30","Y":"0","dmcCode":"0","dmcName":"Empty","R":"0","G":"0","B":"0","symbol":""}]');
-    //console.log(jsonObject);
-    //jsonText = "'" + jsonText + "'"
-    //let jsonObject = JSON.parse(dataholder.innerHTML);
-    
-    //bigArray = dataholder.innerHTML.split("\n")
-
-    
-    //console.log(json2draw.length, jsonObject.length);
-
-
-
-    if(firstLoop) {
-        firstLoop = false;
-        //fillFlossUsage();
-        //console.log(jsonObject);
-        jsonObject = mergeChanges();
-    }
-
-
-    jsonLength = Object.keys(jsonObject).length
-    
-    //console.log(bigArray[bigArray.length-2])
-    if(jsonLength > 1) {
-        cols = jsonObject[jsonLength-1].X + 1;
-        rows = jsonObject[jsonLength-1].Y + 1;
-        //cols = parseInt(bigArray[bigArray.length-2].split(",")[0])+1
-        //rows = parseInt(bigArray[bigArray.length-2].split(",")[1])+1
-        //console.log(cols, rows)
-        //console.log(jsonObject[Object.keys(jsonObject).length-1].X + 1)
-    }
-    else {
-        rows = 10;
-        cols = 10;
-    }
-    //console.log(rows, cols)
-    canvas.width = cols * box;
-    canvas.height = rows * box;
-    //canvas.width = 5000;
-    //canvas.height = 5000;
-    
-    MIN_ZOOM = Math.min(canvas.clientHeight / canvas.height, canvas.clientWidth / canvas.width);
-    
-    //console.log(canvas.width, canvas.height);
-    
-    // Translate to the canvas centre before zooming - so you'll always zoom on what you're looking directly at
-    //ctx.translate( window.innerWidth / 2, window.innerHeight / 2 )
-    //ctx.translate(0, 0);
-    ctx.scale((canvas.width/canvas.clientWidth)*cameraZoom, (canvas.height/canvas.clientHeight)*cameraZoom);
-    ctx.translate( -window.innerWidth / 2 + cameraOffset.x, -window.innerHeight / 2 + cameraOffset.y );
-    
-    //ctx.translate(0, 0);
-    ctx.clearRect(0,0, window.innerWidth, window.innerHeight)
-    ctx.fillStyle = "#ffffff"
-    drawRect(0, 0, canvas.width, canvas.height);
-    
-    
-    //highCode = 553;
-
-    //console.log(bigArray.length, Object.keys(jsonObject).length)
-
-
-    if(jsonLength > 1) {
-        for (i = 1; i < jsonLength; i ++) {
-            
-            //let line = bigArray[i].split(",");
-            let line = jsonObject[i]
-            //console.log(line)
-            //console.log(line);
-
-            if(highFlag == true && line.dmcCode != highCode) {
-                alpha = 0.2;
-            } 
-            else if (highFlag == true && line.dmcCode == highCode) {
-                alpha = 1;
-                //ctx.fillStyle = "black";
-                //ctx.lineWidth = 1;
-                //draw lines around box
-                //up
-                //ctx.beginPath()
-                //ctx.moveTo(line.X*box, line.Y*box);
-                //ctx.lineTo(line.X*box, line.Y*box+box);
-                //ctx.lineTo(line.X*box+box, line.Y*box+box);
-                //ctx.lineTo(line.X*box+box, line.Y*box);
-                //ctx.lineTo(line.X*box, line.Y*box);
-                //ctx.stroke();
-            } 
-            else {
-                alpha = 1;
-            }
-
-
-            ctx.fillStyle = "rgba(" + line.R + ", " + line.G + ", " + line.B + "," + alpha + ")";
-            drawRect(line.X*box, line.Y*box, box, box);
-            //ctx.fillStyle = "rgba(0,0,0," + alpha + ")";
-            ctx.fillStyle = (((line.R * 0.299)+(line.G * 0.587)+(line.B * 0.114)) > 186) ? "rgba(0,0,0," + alpha + ")" : "rgba(255,255,255," + alpha + ")"; // contrast threshold
-            ctx.font = "bold 35px Arial";
-            ctx.fillText(line.symbol, line.X*box+12, line.Y*box+38);
-
-        }
-    }
-
-    //DRAW CHANGES ON TOP
-    /* for(i = 0; i < changes.length; i++) {
-        line = changes[i]
-        //console.log(line)
-        //console.log(line);
-
-        if(highFlag == true && line.dmcCode != highCode) {
-            alpha = 0.2;
-        } 
-        else if (highFlag == true && line.dmcCode == highCode) {
-            alpha = 1;
-            //ctx.fillStyle = "black";
-            //ctx.lineWidth = 1;
-            //draw lines around box
-            //up
-            //ctx.beginPath()
-            //ctx.moveTo(line.X*box, line.Y*box);
-            //ctx.lineTo(line.X*box, line.Y*box+box);
-            //ctx.lineTo(line.X*box+box, line.Y*box+box);
-            //ctx.lineTo(line.X*box+box, line.Y*box);
-            //ctx.lineTo(line.X*box, line.Y*box);
-            //ctx.stroke();
-        } 
-        else {
-            alpha = 1;
-        }
-
-
-        ctx.fillStyle = "rgba(" + line.R + ", " + line.G + ", " + line.B + "," + alpha + ")";
-        drawRect(line.X*box, line.Y*box, box, box);
-        //ctx.fillStyle = "rgba(0,0,0," + alpha + ")";
-        ctx.fillStyle = (((line.R * 0.299)+(line.G * 0.587)+(line.B * 0.114)) > 186) ? "rgba(0,0,0," + alpha + ")" : "rgba(255,255,255," + alpha + ")"; // contrast threshold
-        ctx.font = "bold 35px Arial";
-        ctx.fillText(line.symbol, line.X*box+12, line.Y*box+38);
-    } */
-
-    //DRAW LINES
-    for(i = 0; i < cols/10; i++) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(i*10*box-1, 0);
-        ctx.lineTo(i*10*box-1, canvas.height);
-        ctx.lineWidth = 3;
-        ctx.stroke();
-
-        drawRect(i*10*box, box+(125 - canvas.getBoundingClientRect().y)/cameraZoom - (cameraOffset.y - canvas.clientHeight/2), 50, 32)
-
-        ctx.fillStyle = "white";
-        ctx.fillText(i*10, i*10*box+5, box+((125+25*cameraZoom) - canvas.getBoundingClientRect().y)/cameraZoom - (cameraOffset.y - canvas.clientHeight/2));
-
-    }
-
-    for(i = 0; i < rows/10; i++) {
-        ctx.fillStyle = "black";
-        ctx.beginPath();
-        ctx.moveTo(0, i*10*box-1);
-        ctx.lineTo(canvas.width, i*10*box-1);
-        ctx.lineWidth = 3;
-        ctx.stroke();
-        
-        ctx.fillStyle = "blue";
-        drawRect((canvas.getBoundingClientRect().x)/cameraZoom - (cameraOffset.x - canvas.clientWidth/2), i*10*box, 50, 32)
-
-        ctx.fillStyle = "white";
-
-        //ctx.rotate((90 * Math.PI) / 180);
-        ctx.fillText(i*10, ((2*cameraZoom) - canvas.getBoundingClientRect().x)/cameraZoom - (cameraOffset.x - canvas.clientWidth/2), i*10*box+25);
-        //ctx.rotate(0);
-    }
-
-
-
-    //i=0; j = 0;
-    //for(j = 0; j < 100; j++) {
-        //console.log(i, i%0);
-    //    for(i = 0; i < 100; i++) {
-    //        if((i+j)%2 == 0) { ctx.fillStyle = "#00ffff"; }
-    //        else { ctx.fillStyle = "#ff00ff"; }
-    //        drawRect(i*box, j*box, box, box);
-    //    }
-        
-        
-    //}
-       
-    requestAnimationFrame( draw )
-}
