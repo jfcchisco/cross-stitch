@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="style.css">
+    <link rel="shortcut icon" href="#" />
+    
+    <title>Cross Stitch canvas</title>
+</head>
+<body>
+    <div class="tools">
+        <div id="openTool" class="toolback">
+            <div title="Open" class="tool" onclick="openFile()">
+                <img src="./img/open.png" class="toolImage">
+            </div>
+        </div>
+        <div id="saveTool" class="toolback">
+            <div title="Save" class="tool" onclick="save()">
+                <img src="./img/save.png" class="toolImage">
+            </div>
+        </div>
+        <div id="flossUsage" class="toolback" onclick="flossUsageOpen()">
+            <div title="Floss Usage" class="tool">
+                <img src="./img/report.png" class="toolImage">
+            </div>
+        </div>
+        <div id="highTool" class="toolback">
+            <div title="Highlight color" class="tool" onclick="highlight()">
+                <img src="./img/highlight.png" class="toolImage">
+            </div>
+        </div>
+        <div id="paintTool" class="toolback">
+            <div title="Paint color" class="tool" onclick="paint()">
+                <img src="./img/brush.png" class="toolImage">
+            </div>
+        </div>
+        <div id="bucketTool" class="toolback">
+            <div title="Bucket color" class="tool" onclick="bucket()">
+                <img src="./img/bucket.png" class="toolImage">
+            </div>
+        </div>
+        <div id="undoTool" class="toolback" onclick="undo()">
+            <div title="Undo" class="tool">
+                <img src="./img/undo.png" class="toolImage">
+            </div>
+        </div>
+        <div id="zoomPlus" class="toolback" onclick="zoomIn()">
+            <div title="Zoom In" class="tool">
+                <img src="./img/zoomPlus.png" class="toolImage">
+            </div>
+        </div>
+        <div id="zoomMinus" class="toolback" onclick="zoomOut()">
+            <div title="Zoom Out" class="tool">
+                <img src="./img/zoomMinus.png" class="toolImage">
+            </div>
+        </div>
+        <div id="zoomReset" class="toolback" onclick="zoomReset()">
+            <div title="Zoom Reset" class="tool">
+                <img src="./img/zoomReset.png" class="toolImage">
+            </div>
+        </div>
+        
+        
+    </div>
+    <div class="colors" data-color-container></div>
+
+
+    <!--
+    <canvas id="canvas"></canvas>
+    
+        
+    <div class="container" data-tile-container>
+        <div class="row">
+            <div class="tile"><span>1</span></div>
+            <div class="tile"><span>2</span></div>
+            <div class="tile"><span>3</span></div>
+            <div class="tile"><span>4</span></div>
+            <div class="tile"><span>1</span></div>
+            <div class="tile"><span>2</span></div>
+            <div class="tile"><span>3</span></div>
+            <div class="tile"><span>4</span></div>
+            <div class="tile"><span>1</span></div>
+            <div class="tile"><span>2</span></div>
+            <div class="tile"><span>3</span></div>
+            <div class="tile"><span>4</span></div>
+            <div class="tile"><span>1</span></div>
+            <div class="tile"><span>2</span></div>
+            <div class="tile"><span>3</span></div>
+            <div class="tile"><span>4</span></div>
+            <div class="tile"><span>1</span></div>
+            <div class="tile"><span>2</span></div>
+            <div class="tile"><span>3</span></div>
+            <div class="tile"><span>4</span></div>
+        </div>
+        <div class="row">
+            <div class="tile"><span>5</span></div>
+            <div class="tile"><span>6</span></div>
+            <div class="tile"><span>7</span></div>
+            <div class="tile"><span>8</span></div>
+        </div>
+    </div>
+
+    -->
+
+    <div class="tile-container" data-tile-container></div>
+
+    <div id="myModal" class="modal">
+
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close" onclick="flossUsageClose()">&times;</span>
+            <p id="properties"></p>
+            <div id="modalList">
+                
+            </div>
+        </div>
+      
+      </div>
+
+    <template data-color-template>
+        <div class="colorback" data-color-back>
+            <div class="color" data-color>
+                <p class="colorid" data-color-id></p>
+            </div>
+        </div>
+
+    </template>
+
+    <template data-tile-template>
+        <div class="tile" data-tile-back>
+            <span class="tile-span" data-tile-code></span>
+        </div>
+    </template>
+
+    <template data-row-template>
+        <div class="row" data-tile-row></div>
+    </template>
+    
+    
+</body>
+<script src="script.js"></script>
+</html>
