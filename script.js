@@ -194,6 +194,10 @@ function loadJSON(data) {
     updateColor(data);
     drawGridLines();
 
+    var body = document.body;
+    var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
+    tileContainer.style.height = height+"px";
+
 }
 
 function updateColor(data) {
@@ -812,7 +816,7 @@ window.onclick = function(event) {
 window.addEventListener('resize', function(event) {
     console.log("Changed size")
 
-    var body = document.body,
+    var body = document.body;
     html = document.documentElement;
 
     //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
