@@ -817,7 +817,7 @@ window.addEventListener('resize', function(event) {
 
     //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
     console.log(body.offsetHeight);
-    var height = body.offsetHeight - 130; // total minus the 2 toolbars
+    var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
 
     tileContainer.style.height = height+"px";
     console.log(tileContainer.style)
