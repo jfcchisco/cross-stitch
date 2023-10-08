@@ -57,7 +57,10 @@ html, body
 
 .tools {
     background-color: lightsteelblue;
-    height: 50px;
+    height: 65px;
+    overflow-x: scroll;
+    overflow-y: hidden;
+    white-space: nowrap;
 }
 
 .activeTool {

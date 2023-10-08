@@ -809,7 +809,20 @@ window.onclick = function(event) {
     }
 }
 
+window.addEventListener('resize', function(event) {
+    console.log("Changed size")
 
+    var body = document.body,
+    html = document.documentElement;
+
+    //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
+    console.log(body.offsetHeight);
+    var height = body.offsetHeight - 130; // total minus the 2 toolbars
+
+    tileContainer.style.height = height+"px";
+    console.log(tileContainer.style)
+
+}, true);
 
 
 
