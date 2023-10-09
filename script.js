@@ -7,6 +7,7 @@ const colorTemplate = document.querySelector("[data-color-template]");
 const tileTemplate = document.querySelector("[data-tile-template]");
 const rowTemplate = document.querySelector("[data-row-template]");
 const colorContainer = document.querySelector("[data-color-container]");
+const footNote = document.querySelector("[data-footnote]");
 
 //canvas.width = 5000;
 //canvas.height = 5000;
@@ -240,6 +241,7 @@ function updateColor(data) {
 function tileClick(x, y, code, symbol) {
     //console.log(x, y, code, symbol);
 
+    footnote.innerHTML = "X: " + x + ", Y: " + y + ", Code:" + code;
     var obj = {
         X: x,
         Y: y,
