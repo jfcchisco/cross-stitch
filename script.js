@@ -144,7 +144,7 @@ function loadJSON(data) {
 
     //console.log(cols)
 
-    console.log(tileContainer.children.length);
+    //console.log(tileContainer.children.length);
 
     if(tileContainer.children.length > 0) {
         console.log("Removing all tiles...")
@@ -787,7 +787,7 @@ function drawGridLines() {
 }
 
 function drawHorizontalLines() {
-    console.log(Math.round(tileContainer.children.length/10));
+    //console.log(Math.round(tileContainer.children.length/10));
 
     for(i = 1; i < Math.round(tileContainer.children.length/10); i++) {
         let topRow = tileContainer.children.item((i*10)-1);
@@ -819,17 +819,17 @@ window.onclick = function(event) {
 }
 
 window.addEventListener('resize', function(event) {
-    console.log("Changed size")
+    //console.log("Changed size")
 
     var body = document.body;
     html = document.documentElement;
 
     //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
-    console.log(body.offsetHeight);
+    //console.log(body.offsetHeight);
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
 
     tileContainer.style.height = height+"px";
-    console.log(tileContainer.style)
+    //console.log(tileContainer.style)
 
 }, true);
 
