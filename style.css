@@ -149,6 +149,10 @@ html, body
     
 }
 
+.footnote {
+    font-size: 14px;
+}
+
 span {
     display: inline-block;
     line-height: normal;
@@ -161,6 +165,11 @@ span {
 th, td {
     text-align: left;
     padding: 2px;
+    font-size: 14px;
+}
+
+th {
+    font-weight: bold;
 }
 
 table, th, td {
