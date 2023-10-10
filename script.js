@@ -274,7 +274,7 @@ function selectColor(color, symbol) {
     }
 
     for (let i = 0; i < collection.length; i++) {
-        if(collection[i].children[0].children[0].innerHTML == symbol) {
+        if(collection[i].children[0].children[0].children[0].innerHTML == symbol) {
             collection[i].classList.add("activeColor");
         }
         //console.log(collection[i].children[0].children[0].innerHTML);
