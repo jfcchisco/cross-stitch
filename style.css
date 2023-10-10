@@ -42,6 +42,13 @@ html, body
     
 }
 
+.colorback {
+    height: 40px;
+    width: 40px; 
+    border: 2px solid black; 
+    border-radius:5px;
+}
+
 .colors, .tools {
     display: flex;
     width: 100%;
