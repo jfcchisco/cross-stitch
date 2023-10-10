@@ -261,7 +261,9 @@ function tileClick(x, y, code, symbol) {
         selectColor(obj.code, obj.symbol);
 
     }
-    footNote.innerHTML = "X: " + x + ", Y: " + y + ", Code:" + code;
+    let tileX = x + 1;
+    let tileY = y + 1;
+    footNote.innerHTML = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
 } 
 
 function selectColor(color, symbol) {
