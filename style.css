@@ -70,7 +70,7 @@ html, body
 }
 
 .activeTool {
-    background-color: steelblue;
+    background-color: orangered;
 }
 
 .toolImage {
@@ -79,7 +79,7 @@ html, body
 }
 
 .activeColor {
-    background-color: darkmagenta;
+    background-color: orangered;
 }
 
 .modal {
