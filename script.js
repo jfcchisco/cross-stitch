@@ -312,9 +312,9 @@ function checkAndAddColor (colors, line)
             "code": line.dmcCode,
             "name": line.dmcName,
             "R": line.R,
-	        "G": line.G,
-	        "B": line.B,
-	        "symbol": line.symbol,
+	    "G": line.G,
+	    "B": line.B,
+	    "symbol": line.symbol,
             "count": 1
         } );
     }
@@ -712,7 +712,7 @@ function fillFlossUsage() {
         if(obj.dmcCode == 1) {
             stitched = obj.count;
         }
-        else if(obj.dmcCode != 0) {
+        else if(obj.dmcCode != "0") {
             toStitch += obj.count;
         }
     })
