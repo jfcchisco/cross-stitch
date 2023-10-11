@@ -707,7 +707,7 @@ function fillFlossUsage() {
     //Count already stitched
     let stitched = 0;
     let toStitch = 0;
-    data.forEach(obj => {
+    colorArray.forEach(obj => {
         //console.log(obj);
         if(obj.dmcCode == 1) {
             stitched = obj.count;
