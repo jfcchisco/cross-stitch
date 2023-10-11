@@ -718,7 +718,7 @@ function fillFlossUsage() {
     })
 
     toStitch += stitched;
-    let percentage = stitched / toStitch;
+    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
 
 
     //Sort for table 
