@@ -709,10 +709,10 @@ function fillFlossUsage() {
     let toStitch = 0;
     colorArray.forEach(obj => {
         //console.log(obj);
-        if(obj.dmcName == "STITCHED") {
+        if(obj.name == "STITCHED") {
             stitched = obj.count;
         }
-        else if(obj.dmcName != "Empty") {
+        else if(obj.name != "Empty") {
             toStitch += obj.count;
         }
     })
