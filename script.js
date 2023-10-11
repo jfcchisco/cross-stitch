@@ -704,6 +704,24 @@ function fillFlossUsage() {
         colorArray = checkAndAddColor(colorArray, obj);
     })
 
+    //Count already stitched
+    let stitched = 0;
+    let toStitch = 0;
+    data.forEach(obj => {
+        //console.log(obj);
+        if(obj.dmcCode == 1) {
+            stitched = obj.count;
+        }
+        else if(obj.dmcCode != 0) {
+            toStitch += obj.count;
+        }
+    })
+
+    toStitch += stitched;
+    let percentage = stitched / toStitch;
+
+
+    //Sort for table 
     colorArray.sort(function(a, b) {
         if(a.count < b.count) return 1;
         if(a.count > b.count) return -1;
@@ -713,7 +731,7 @@ function fillFlossUsage() {
 
     //Fill properties
     let par = document.getElementById("properties");
-    par.innerHTML = (jsonObject[Object.keys(jsonObject).length-1].X + 1) + "w x " + (jsonObject[Object.keys(jsonObject).length-1].Y + 1) + "h"
+    par.innerHTML = (jsonObject[Object.keys(jsonObject).length-1].X + 1) + "w x " + (jsonObject[Object.keys(jsonObject).length-1].Y + 1) + "h. " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
 
 
     //Fill table
