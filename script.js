@@ -288,7 +288,7 @@ function selectColor(color, symbol) {
     }
 
 
-        
+    footNote.innerHTML = "Color selected: " + color;    
     
 }
 
