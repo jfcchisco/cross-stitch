@@ -65,6 +65,9 @@ window.onload = function() {
 }
 
 function loadJSON(data) {
+    // Clear all changes
+    changes = [];
+	
     originalObject = data; // keep as loaded
             //jsonObject = data; // this will be merged with changes, every time there is a change, changes are added to original and stored here for display and count
 
