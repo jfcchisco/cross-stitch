@@ -272,7 +272,7 @@ function highContrast() {
         document.getElementById("contrastTool").classList.add("activeTool");
     }
     else {
-        document.getElementById("contrastTool").classList.add("removeTool");
+        document.getElementById("contrastTool").classList.remove("activeTool");
     }
 
     updateColor(jsonObject);
