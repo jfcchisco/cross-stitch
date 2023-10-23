@@ -31,6 +31,7 @@ let rows = 0;
 let paintFlag = false;
 let highFlag = false;
 let bucketFlag = false;
+let contrastFlag = false;
 let highCode = 0;
 let highSymbol = "";
 let alpha = 1;
@@ -213,15 +214,38 @@ function updateColor(data) {
         let tile = row.children.item(tileValues.X)
 
         let alpha = 1;
-        let spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'black' : 'white';
+        let spanColor = 'black';
+        let color = 'white';
+        //Check for high contrast
+        if(contrastFlag && tileValues.dmcCode != 0 && tileValues.dmcCode != 1) {
+            if(highFlag) {
+                if(highSymbol == tileValues.symbol) {
+                    spanColor = 'white';
+                    color = 'black';
+                }
+                else {
+                    alpha = 0.25;
+                    spanColor = 'silver';
+                }
+            }
+               
 
-        if(highFlag && highSymbol != tileValues.symbol ) {
-            alpha = 0.25;
-            spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'silver' : 'white';
         }
 
-        let color = "rgba(" + tileValues.R + ", " + tileValues.G + ", " + tileValues.B + "," + alpha + ")";
+
+        else {
+            spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'black' : 'white';
+
+            if(highFlag && highSymbol != tileValues.symbol ) {
+                alpha = 0.25;
+                spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'silver' : 'white';
+            }
+
+            color = "rgba(" + tileValues.R + ", " + tileValues.G + ", " + tileValues.B + "," + alpha + ")";
+        }
         //tile.setAttribute('style', color)
+        
+        
         tile.style.backgroundColor = color;
         let X = tileValues.X + 1;
         let Y = tileValues.Y + 1;
@@ -239,7 +263,18 @@ function updateColor(data) {
     }
 }
 
+function highContrast() {
+    contrastFlag = !contrastFlag;
 
+    if(contrastFlag) {
+        document.getElementById("contrastTool").classList.add("activeTool");
+    }
+    else {
+        document.getElementById("contrastTool").classList.add("removeTool");
+    }
+
+    updateColor(jsonObject);
+}
 
 function tileClick(x, y, code, symbol) {
     //console.log(x, y, code, symbol);
