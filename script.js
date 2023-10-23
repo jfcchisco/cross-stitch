@@ -21,6 +21,7 @@ let SCROLL_SENSITIVITY = 0.001
 
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
+let DEFAULT_HEIGHT = 24;
 
 let box = 50; // Stitch width and height
 let i = 0;
@@ -32,6 +33,7 @@ let paintFlag = false;
 let highFlag = false;
 let bucketFlag = false;
 let contrastFlag = false;
+let zoomResetFlag = false;
 let highCode = 0;
 let highSymbol = "";
 let alpha = 1;
@@ -607,8 +609,15 @@ function zoomOut() {
 }
 
 function zoomReset() {
-    //console.log(tileContainer.offsetHeight, tileContainer.children.length);
-    setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length));
+    zoomResetFlag = !zoomResetFlag;
+
+    if(zoomResetFlag) {
+        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length));
+    }
+    else {
+        setHeight(DEFAULT_HEIGHT);
+    }
+    
 
 }
 
