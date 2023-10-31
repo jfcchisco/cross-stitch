@@ -127,7 +127,7 @@ function loadJSON(data) {
             colorFront.setAttribute('style', backColor)
             const colorTitle = color.code + " - " + color.name;
             colorFront.setAttribute('title', colorTitle);
-            const colorClick = "selectColor(" + color.code + ", \"" + color.symbol + "\")";
+            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
             colorFront.setAttribute('onclick', colorClick);
 
             if(colorBack != null) {
@@ -258,7 +258,8 @@ function updateColor(data) {
             
         tile.setAttribute('onclick', tileClick);
 
-        tile.children.item(0).innerHTML = tileValues.symbol;
+        //tile.children.item(0).innerHTML = tileValues.symbol;
+        tile.children.item(0).innerText = tileValues.symbol;
 
         tile.children.item(0).style.color = spanColor;
 
@@ -303,7 +304,7 @@ function tileClick(x, y, code, symbol) {
     }
     let tileX = x + 1;
     let tileY = y + 1;
-    footNote.innerHTML = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
 } 
 
 function selectColor(color, symbol) {
@@ -314,7 +315,7 @@ function selectColor(color, symbol) {
     }
 
     for (let i = 0; i < collection.length; i++) {
-        if(collection[i].children[0].children[0].children[0].innerHTML == symbol) {
+        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
             collection[i].classList.add("activeColor");
         }
         //console.log(collection[i].children[0].children[0].innerHTML);
@@ -328,7 +329,7 @@ function selectColor(color, symbol) {
     }
 
 
-    footNote.innerHTML = "Color selected: " + color;    
+    footNote.innerText = "Color selected: " + color;    
     
 }
 
@@ -426,7 +427,7 @@ function paintClick(stitchCoord) {
                 "R": 0,
                 "G": 255,
                 "B": 0,
-                "symbol": "X"
+                "symbol": "🞮"
             },
         )
         jsonObject = mergeChanges();
@@ -897,23 +898,4 @@ window.addEventListener('resize', function(event) {
     //console.log(tileContainer.style)
 
 }, true);
-
-
-
-
-
-//canvas.addEventListener('mousedown', onPointerDown)
-//canvas.addEventListener('touchstart', (e) => handleTouch(e, onPointerDown))
-//canvas.addEventListener('mouseup', onPointerUp)
-//canvas.addEventListener('touchend',  (e) => handleTouch(e, onPointerUp))
-//canvas.addEventListener('mousemove', onPointerMove)
-//canvas.addEventListener('touchmove', (e) => handleTouch(e, onPointerMove))
-//canvas.addEventListener('wheel', (e) => adjustZoom(e.deltaY*SCROLL_SENSITIVITY))
-
-// Ready, set, go
-//draw()
-
-//Refresh MIN_ZOOM in case there is a chance that the window changed size
-//MIN_ZOOM = Math.min(canvas.clientHeight / canvas.height, canvas.clientWidth / canvas.width);
-
 
