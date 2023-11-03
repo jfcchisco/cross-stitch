@@ -9,16 +9,6 @@ const rowTemplate = document.querySelector("[data-row-template]");
 const colorContainer = document.querySelector("[data-color-container]");
 const footNote = document.querySelector("[data-footnote]");
 
-//canvas.width = 5000;
-//canvas.height = 5000;
-
-let cameraOffset = { x: window.innerWidth/2, y: window.innerHeight/2 }
-//let cameraZoom = 1
-let MAX_ZOOM = 4
-//let MIN_ZOOM = Math.min(canvas.clientHeight / canvas.height, canvas.clientWidth / canvas.width);
-let SCROLL_SENSITIVITY = 0.001
-//let cameraZoom = MIN_ZOOM;
-
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
 let DEFAULT_HEIGHT = 24;
@@ -55,7 +45,7 @@ var downloadURL = null;
 
 window.onload = function() {
 
-    fetch("./rabbit.json")
+    fetch(jsonFile)
         .then(response => {
             return response.text();
         })
@@ -67,270 +57,26 @@ window.onload = function() {
     })
 }
 
-function loadJSON(data) {
-    // Clear all changes
-    changes = [];
-	
-    originalObject = data; // keep as loaded
-            //jsonObject = data; // this will be merged with changes, every time there is a change, changes are added to original and stored here for display and count
+function bucket() {
+    clearActiveTool();
+    bucketFlag = !bucketFlag;
 
-    //Create object with unique colors and count
-    //jsonColors = {};
-    colorArray = [];
-
-    //console.log(data[data.length-1])
-
-    data.forEach(obj => {
-        //console.log(obj);
-        colorArray = checkAndAddColor(colorArray, obj);
-    })
-
-    //Add non-existing color for painting
-    // colorArray.push( { 
-    //     "code": 1,
-    //     "name": "STITCHED",
-    //     "R": 0,
-    //     "G": 255,
-    //     "B": 0,
-    //     "symbol": "X",
-    //     "count": 0
-    // } );
-
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-    //console.log(colorArray);
-    //dataholder.dataset.json = JSON.stringify(data);
-    //dataholder.innerHTML = JSON.stringify(data);
-
-
-    //Clear colors
-    while(colorContainer.lastElementChild) {
-        colorContainer.removeChild(colorContainer.lastElementChild);
+    if(bucketFlag) {
+        document.getElementById("bucketTool").classList.add("activeTool");
     }
 
-
-    colors = colorArray.map(color =>  {
-        //console.log(color.R);
-        if(color.code!=0) {
-            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
-            const colorBack = colorDiv.querySelector("[data-color-back]");
-            const colorFront = colorDiv.querySelector("[data-color]");
-            const colorId = colorDiv.querySelector("[data-color-id]");
-
-            colorId.textContent = color.symbol;
-            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
-            
-            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            colorFront.setAttribute('style', backColor)
-            const colorTitle = color.code + " - " + color.name;
-            colorFront.setAttribute('title', colorTitle);
-            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
-            colorFront.setAttribute('onclick', colorClick);
-
-            if(colorBack != null) {
-                colorBack.classList.add('holyS');
-                console.log('added');
-            }
-            colorContainer.append(colorDiv);
-        }
-        
-        
-
-    })
-    jsonObject = mergeChanges();
-    //changes = colorArray;
-    fillFlossUsage();
-
-    //Create all divs for tiles
-    cols = data[data.length-1].X+1
-    rows = data[data.length-1].Y+1
-
-    //console.log(cols)
-
-    //console.log(tileContainer.children.length);
-
-    if(tileContainer.children.length > 0) {
-        console.log("Removing all tiles...")
-        while (tileContainer.lastElementChild) { 
-            tileContainer.removeChild(tileContainer.lastElementChild);
-          }
-    
-    }
-    
-
-    for(j=1; j<=rows; j++) {
-
-    
-        const newRow = rowTemplate.content.cloneNode(true).children[0];
-        for(i=1; i<=cols; i++)  {
-            const tileDiv = tileTemplate.content.cloneNode(true).children[0];
-            if(i%2==0) {
-                tileDiv.setAttribute('style', "background-color: white");
-            }
-            else {
-                tileDiv.setAttribute('style', "background-color: yellow");
-            }
-            
-            
-            //console.log(tileDiv.children)
-
-            newRow.append(tileDiv);
-
-        }
-        tileContainer.append(newRow)
-    }
-
-
-    // let singleChange = []
-    // singleChange.push(
-    //     {
-    //         "X": 0,
-    //         "Y": 0,
-    //         "dmcCode": 1,
-    //         "dmcName": "STITCHED",
-    //         "R": 0,
-    //         "G": 255,
-    //         "B": 0,
-    //         "symbol": "X"
-    //     },
-    // )
-    // console.log(singleChange.length)
-    updateColor(data);
-    drawGridLines();
-
-    var body = document.body;
-    var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
-    tileContainer.style.height = height+"px";
-
-}
-
-function updateColor(data) {
-    for(i=0; i<data.length; i++) {
-        let tileValues = data[i];
-        //console.log(tileContainer.children)
-        let row = tileContainer.children.item(tileValues.Y);
-
-        let tile = row.children.item(tileValues.X)
-
-        let alpha = 1;
-        let spanColor = 'black';
-        let color = 'white';
-        //Check for high contrast
-        if(contrastFlag && tileValues.dmcCode != 0 && tileValues.dmcCode != 1) {
-            if(highFlag) {
-                if(highSymbol == tileValues.symbol) {
-                    spanColor = 'white';
-                    color = 'black';
-                }
-                else {
-                    alpha = 0.25;
-                    spanColor = 'silver';
-                }
-            }
-               
-
-        }
-
-
-        else {
-            spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'black' : 'white';
-
-            if(highFlag && highSymbol != tileValues.symbol ) {
-                alpha = 0.25;
-                spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'silver' : 'white';
-            }
-
-            color = "rgba(" + tileValues.R + ", " + tileValues.G + ", " + tileValues.B + "," + alpha + ")";
-        }
-        //tile.setAttribute('style', color)
-        
-        
-        tile.style.backgroundColor = color;
-        let X = tileValues.X + 1;
-        let Y = tileValues.Y + 1;
-        let tileTitle = tileValues.dmcCode + " - " + tileValues.dmcName + " - X: " + X + " - Y: " + Y
-        tile.setAttribute('title', tileTitle)
-
-        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + tileValues.symbol + "\")";
-            
-        tile.setAttribute('onclick', tileClick);
-
-        //tile.children.item(0).innerHTML = tileValues.symbol;
-        tile.children.item(0).innerText = tileValues.symbol;
-
-        tile.children.item(0).style.color = spanColor;
-
-    }
-}
-
-function highContrast() {
-    contrastFlag = !contrastFlag;
-
-    if(contrastFlag) {
-        document.getElementById("contrastTool").classList.add("activeTool");
-    }
-    else {
-        document.getElementById("contrastTool").classList.remove("activeTool");
-    }
-
+    //clear other flags
+    highFlag = false;
+    paintFlag = false;
     updateColor(jsonObject);
 }
 
-function tileClick(x, y, code, symbol) {
-    //console.log(x, y, code, symbol);
+function bucketClick(stitchCoord) {
+    let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
 
-    
-    var obj = {
-        X: x,
-        Y: y,
-        code: code,
-        symbol : symbol
-    }
-
-    if(paintFlag) {
-        paintClick(obj);
-    }
-
-    else if(bucketFlag) {
-        bucketClick(obj);
-    }
-
-    else if (highFlag) {
-        selectColor(obj.code, obj.symbol);
-
-    }
-    let tileX = x + 1;
-    let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
-} 
-
-function selectColor(color, symbol) {
-    //console.log(color);
-    const collection = document.getElementsByClassName("colorback");
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].classList.remove("activeColor");
-    }
-
-    for (let i = 0; i < collection.length; i++) {
-        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
-            collection[i].classList.add("activeColor");
-        }
-        //console.log(collection[i].children[0].children[0].innerHTML);
-    }
-
-    highCode = color;
-    highSymbol = symbol;
-
-    if(highFlag) {
-        updateColor(jsonObject);
-    }
-
-
-    footNote.innerText = "Color selected: " + color;    
-    
+    stitches2Paint.forEach(stitch => {
+        paintClick(stitch);
+    })
 }
 
 function checkAndAddColor (colors, line) 
@@ -366,109 +112,147 @@ function checkAndAddColor (colors, line)
 
 }
 
-function highlight() {
-    //console.log(highFlag);
-    clearActiveTool();
-    highFlag = !highFlag;
-    //console.log(highFlag);
-    if(highFlag) {
-        document.getElementById("highTool").classList.add("activeTool");
+function clearActiveTool() {
+    const collection = document.getElementsByClassName("toolback");
+    for (let i = 0; i < collection.length; i++) {
+        collection[i].classList.remove("activeTool");
     }
-
-    //clear other flags
-    paintFlag = false;
-    bucketFlag = false;
-
-    updateColor(jsonObject);
+   
 }
 
-function paint() {
-    clearActiveTool();
-    paintFlag = !paintFlag;
-
-    if(paintFlag) {
-        document.getElementById("paintTool").classList.add("activeTool");
-    }
-
-    //clear other flags
-    highFlag = false;
-    bucketFlag = false;
-
-    updateColor(jsonObject);
+function drawGridLines() {
+    drawHorizontalLines();
+    drawVerticalLines();
 }
 
-function paintClick(stitchCoord) {
-    let alreadyStitched = false;
+function drawHorizontalLines() {
+    //console.log(Math.round(tileContainer.children.length/10));
 
-    //console.log(getStitchColor(stitchCoord));
-
-    if(stitchCoord.X < 0 || stitchCoord.Y < 0 || getStitchColor(stitchCoord) == 0) {
-        return;
-    }
-
-    for(let i = 0; i < changes.length; i++) {
-        //console.log(i, changes[i], stitchCoord);
-        //console.log(changes[i].X, stitchCoord.X, changes[i].Y, stitchCoord.Y);
-        if(changes[i].X == stitchCoord.X && changes[i].Y == stitchCoord.Y) {
-            alreadyStitched = true;
-            
+    for(i = 1; i < Math.round(tileContainer.children.length/10); i++) {
+        let topRow = tileContainer.children.item((i*10)-1);
+        let botRow = tileContainer.children.item((i*10));
+        // row-1 is the 10th row, all tiles should bottom border
+        for(j = 0; j < topRow.children.length; j++) {
+            topRow.children.item(j).style.borderBottom = "2px solid black";
         }
     }
-    
 
+}
 
-    if(!alreadyStitched && stitchCoord.X >= 0 && stitchCoord.Y >= 0) {
-        changes.push(
-            {
-                "X": stitchCoord.X,
-                "Y": stitchCoord.Y,
-                "dmcCode": 1,
-                "dmcName": "STITCHED",
-                "R": 0,
-                "G": 255,
-                "B": 0,
-                "symbol": "🞮"
-            },
-        )
-        jsonObject = mergeChanges();
-        fillFlossUsage();
-        //console.log(changes);
+function drawVerticalLines() {
+    for(i = 0; i < tileContainer.children.length; i++) {
+        //Get 9th n-element of each row and add 
+        let row = tileContainer.children.item(i);
+
+        for(j=1; j < Math.round(row.children.length/10); j++) {
+            row.children.item((j*10)-1).style.borderRight = "2px solid black";
+        }
     }
-
-    updateColor(changes);
-    
 }
 
-function undo() {
-    //console.log(changes);
-    changes.pop();
-    //console.log(changes);
-    jsonObject = mergeChanges();
-    fillFlossUsage();
-    //console.log('Undone')
-    updateColor(jsonObject);
-}
-
-function bucket() {
-    clearActiveTool();
-    bucketFlag = !bucketFlag;
-
-    if(bucketFlag) {
-        document.getElementById("bucketTool").classList.add("activeTool");
+function fillFlossUsage() {
+    //clear all elements of the modal
+    let modalList = document.getElementById("modalList");
+    while(modalList.lastElementChild) {
+        modalList.removeChild(modalList.lastElementChild);
     }
-
-    //clear other flags
-    highFlag = false;
-    paintFlag = false;
-    updateColor(jsonObject);
-}
-
-function bucketClick(stitchCoord) {
-    let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
-
-    stitches2Paint.forEach(stitch => {
-        paintClick(stitch);
+    
+    //Refresh color list
+    colorArray = [];
+    jsonObject.forEach(obj => {
+        //console.log(obj);
+        colorArray = checkAndAddColor(colorArray, obj);
     })
+
+    //Count already stitched
+    let stitched = 0;
+    let toStitch = 0;
+    colorArray.forEach(obj => {
+        //console.log(obj);
+        if(obj.name == "STITCHED") {
+            stitched = obj.count;
+        }
+        else if(obj.name != "Empty") {
+            toStitch += obj.count;
+        }
+    })
+
+    toStitch += stitched;
+    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
+
+    //Sort for table 
+    colorArray.sort(function(a, b) {
+        if(a.count < b.count) return 1;
+        if(a.count > b.count) return -1;
+        return 0;
+    });
+
+    //Fill properties
+    let par = document.getElementById("properties");
+    par.innerHTML = (jsonObject[Object.keys(jsonObject).length-1].X + 1) + "w x " + (jsonObject[Object.keys(jsonObject).length-1].Y + 1) + "h. " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
+
+
+    //Fill table
+    
+    //let table = document.getElementById("modalTable");
+    let table = document.createElement("table");
+    const headRow = document.createElement('tr');
+
+    let heads = ["Color", "Symbol", "Code", "Name", "Count"];
+    for (let i in heads) {
+        const headCell = document.createElement('th');
+        headCell.textContent = heads[i];
+        headRow.appendChild(headCell);
+    }
+
+    table.appendChild(headRow);
+
+    let newRow = document.createElement('tr');
+    let newCell = document.createElement('td');
+
+    colors = colorArray.map(color =>  {
+        newRow = document.createElement('tr');
+
+        newCell = document.createElement('td');
+        //newCell.textContent = color.R + "," + color.G + "," + color.B;
+        let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+        newCell.setAttribute('style', backColor);
+        newRow.appendChild(newCell);
+
+        newCell = document.createElement('td');
+        newCell.textContent = color.symbol;
+        newCell.setAttribute('style', 'text-align: center');
+        newRow.appendChild(newCell);
+
+        newCell = document.createElement('td');
+        newCell.textContent = color.code;
+        newCell.setAttribute('style', 'text-align: right');
+        newRow.appendChild(newCell);
+
+        newCell = document.createElement('td');
+        newCell.textContent = color.name;
+        newRow.appendChild(newCell);
+
+        newCell = document.createElement('td');
+        newCell.textContent = color.count;
+        newCell.setAttribute('style', 'text-align: right');
+        newRow.appendChild(newCell);
+
+        table.appendChild(newRow);
+    })
+
+
+    modalList.appendChild(table);
+}
+
+function flossUsageClose() {
+    let modal = document.getElementById("myModal");
+    modal.style.display = "none";
+}
+
+function flossUsageOpen() {
+    let modal = document.getElementById("myModal");
+    modal.style.display = "block";
 }
 
 function getNeighborStitches(X, Y) {
@@ -544,6 +328,150 @@ function getNeighborStitches(X, Y) {
     return foundStitches;
 }
 
+function getStitchColor(stitchCoord) {
+    let X = stitchCoord.X;
+    let Y = stitchCoord.Y;
+
+    let dmcCode = -1
+
+    stitches = jsonObject.map(stitch => {
+        //console.log(stitch);
+        if(stitch.X == X && stitch.Y == Y) {
+            dmcCode = stitch.dmcCode;
+        }
+    });
+
+    //console.log(dmcCode);
+    return dmcCode;
+    
+}
+
+function highContrast() {
+    contrastFlag = !contrastFlag;
+
+    if(contrastFlag) {
+        document.getElementById("contrastTool").classList.add("activeTool");
+    }
+    else {
+        document.getElementById("contrastTool").classList.remove("activeTool");
+    }
+
+    updateColor(jsonObject);
+}
+
+function highlight() {
+    //console.log(highFlag);
+    clearActiveTool();
+    highFlag = !highFlag;
+    //console.log(highFlag);
+    if(highFlag) {
+        document.getElementById("highTool").classList.add("activeTool");
+    }
+
+    //clear other flags
+    paintFlag = false;
+    bucketFlag = false;
+
+    updateColor(jsonObject);
+}
+
+function IsCoordAlreadyThere (stitchCoord, array2Test) {
+    let ret = false;
+    test = array2Test.map(coord => {
+        //console.log(coord, stitchCoord);
+        if(coord.X == stitchCoord.X && coord.Y == stitchCoord.Y) {
+            ret = true;
+        }
+    })
+    return ret;
+}
+
+function loadJSON(data) {
+    
+    originalObject = data; // keep as loaded
+    
+    // Clear all changes
+    changes = [];
+	colorArray = [];
+    
+    data.forEach(obj => {
+        colorArray = checkAndAddColor(colorArray, obj);
+    })
+
+    colorArray.sort(function(a, b) {
+        if(a.count < b.count) return 1;
+        if(a.count > b.count) return -1;
+        return 0;
+    });
+    
+    //Clear colors
+    while(colorContainer.lastElementChild) {
+        colorContainer.removeChild(colorContainer.lastElementChild);
+    }
+
+    colors = colorArray.map(color =>  {
+        if(color.code!=0) {
+            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
+            const colorBack = colorDiv.querySelector("[data-color-back]");
+            const colorFront = colorDiv.querySelector("[data-color]");
+            const colorId = colorDiv.querySelector("[data-color-id]");
+
+            colorId.textContent = color.symbol;
+            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
+            
+            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+            colorFront.setAttribute('style', backColor)
+            const colorTitle = color.code + " - " + color.name;
+            colorFront.setAttribute('title', colorTitle);
+            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
+            colorFront.setAttribute('onclick', colorClick);
+
+            if(colorBack != null) {
+                colorBack.classList.add('holyS');
+                console.log('added');
+            }
+            colorContainer.append(colorDiv);
+        }
+    })
+
+    jsonObject = mergeChanges();
+    fillFlossUsage();
+
+    //Create all divs for tiles
+    cols = data[data.length-1].X+1
+    rows = data[data.length-1].Y+1
+
+    if(tileContainer.children.length > 0) {
+        console.log("Removing all tiles...")
+        while (tileContainer.lastElementChild) { 
+            tileContainer.removeChild(tileContainer.lastElementChild);
+          }
+    }
+    
+    for(j=1; j<=rows; j++) {
+        const newRow = rowTemplate.content.cloneNode(true).children[0];
+        for(i=1; i<=cols; i++)  {
+            const tileDiv = tileTemplate.content.cloneNode(true).children[0];
+            if(i%2==0) {
+                tileDiv.setAttribute('style', "background-color: white");
+            }
+            else {
+                tileDiv.setAttribute('style', "background-color: yellow");
+            }
+            newRow.append(tileDiv);
+        }
+        tileContainer.append(newRow)
+    }
+
+    updateColor(data);
+    drawGridLines();
+
+    var body = document.body;
+    var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
+    tileContainer.style.height = height+"px";
+
+}
+
 function mergeChanges() {
     //jsonObject = originalObject; // restore initial state
     let newJson = [];
@@ -575,90 +503,143 @@ function mergeChanges() {
     //console.log(jsonObject);
 }
 
+function openFile() {
 
-function setHeight(newHeight) {
-    const collection = document.getElementsByClassName("tile");
-    let newHeightStyle = newHeight + "px";
-    let newFontSizeStyle = Math.round((newHeight*3)/4) + "px";
+    originalObject = {};
+    colorArray = {};
+    jsonObject = {};
 
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].style.height = newHeightStyle;
-        collection[i].style.width = newHeightStyle;
-        collection[i].children.item(0).style.fontSize = newFontSizeStyle;
-    }
+    let jsonContent = "";
 
-}
-
-function zoomIn() {
-    const collection = document.getElementsByClassName("tile");
-    let height = collection[0].offsetHeight;
-    if(height < MAX_HEIGHT) {
-        let newHeight = height + 2;
-        setHeight(newHeight);
-    }
-    console.log('IN');
-    
-}
-
-function zoomOut() {
-    const collection = document.getElementsByClassName("tile");
-    let height = collection[0].offsetHeight;
-    if(height > MIN_HEIGHT) {
-        let newHeight = height - 2;
-        setHeight(newHeight);
-    }
-    console.log('IN');
-    
-}
-
-function zoomReset() {
-    zoomResetFlag = !zoomResetFlag;
-
-    if(zoomResetFlag) {
-        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length));
-    }
-    else {
-        setHeight(DEFAULT_HEIGHT);
-    }
-    
-
-}
-
-function getStitchColor(stitchCoord) {
-    let X = stitchCoord.X;
-    let Y = stitchCoord.Y;
-
-    let dmcCode = -1
-
-    stitches = jsonObject.map(stitch => {
-        //console.log(stitch);
-        if(stitch.X == X && stitch.Y == Y) {
-            dmcCode = stitch.dmcCode;
+    let input = document.createElement('input');
+    input.type = 'file';
+    input.onchange = _ => {
+    // you can use this method to get file and perform respective operations
+        let file =  input.files[0];
+        console.log(file);
+        if(file) {
+            var reader = new FileReader();
+            reader.readAsText(file, "UTF-8");
+            reader.onload = function (evt) {
+                //console.log(evt.target.result);
+                jsonContent = evt.target.result;
+                loadJSON(JSON.parse(jsonContent));
+            }
         }
-    });
+    };
+    input.click();
+}
 
-    //console.log(dmcCode);
-    return dmcCode;
+function paint() {
+    clearActiveTool();
+    paintFlag = !paintFlag;
+
+    if(paintFlag) {
+        document.getElementById("paintTool").classList.add("activeTool");
+    }
+
+    //clear other flags
+    highFlag = false;
+    bucketFlag = false;
+
+    updateColor(jsonObject);
+}
+
+function paintClick(stitchCoord) {
+    let alreadyStitched = false;
+
+    //console.log(getStitchColor(stitchCoord));
+
+    if(stitchCoord.X < 0 || stitchCoord.Y < 0 || getStitchColor(stitchCoord) == 0) {
+        return;
+    }
+
+    for(let i = 0; i < changes.length; i++) {
+        //console.log(i, changes[i], stitchCoord);
+        //console.log(changes[i].X, stitchCoord.X, changes[i].Y, stitchCoord.Y);
+        if(changes[i].X == stitchCoord.X && changes[i].Y == stitchCoord.Y) {
+            alreadyStitched = true;
+            
+        }
+    }
+    
+
+
+    if(!alreadyStitched && stitchCoord.X >= 0 && stitchCoord.Y >= 0) {
+        changes.push(
+            {
+                "X": stitchCoord.X,
+                "Y": stitchCoord.Y,
+                "dmcCode": 1,
+                "dmcName": "STITCHED",
+                "R": 0,
+                "G": 255,
+                "B": 0,
+                "symbol": "🞮"
+            },
+        )
+        jsonObject = mergeChanges();
+        fillFlossUsage();
+        //console.log(changes);
+    }
+
+    updateColor(changes);
+}
+
+function preview(data) {
+    let canvas = document.getElementById("canvas")
+    let ctx = canvas.getContext('2d')
+
+    let modal = document.getElementById("previewModal");
+
+    let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
+    //console.log(box);
+
+    canvas.height = box * rows;
+    canvas.width =  box * cols;
+
+    let modalHeight = box * rows + 30;
+    let modalWidth =  box * cols + 30;
+
+    modal.style.height = modalHeight+"px";
+    modal.style.width = modalWidth+"px";
+
+    ctx.clearRect(0,0, canvas.width, canvas.height)
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    for(i=0; i<data.length; i++) {
+        let tileValues = data[i];
+        //console.log(tileContainer.children)
+        let row = tileContainer.children.item(tileValues.Y);
+        let tile = row.children.item(tileValues.X)
+
+        //console.log(tile.style.backgroundColor);
+        let backColor = tile.style.backgroundColor;
+        if(!backColor.match('rgba')) {
+            ctx.fillStyle = backColor;
+            ctx.fillRect(tileValues.X * box, tileValues.Y * box, tileValues.X * box + box, tileValues.Y * box + box);
+            //console.log('RGBA color', backColor)
+        }
+        else {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(tileValues.X * box, tileValues.Y * box, tileValues.X * box + box, tileValues.Y * box + box);
+        }
+        
+        
+    }
     
 }
 
-function IsCoordAlreadyThere (stitchCoord, array2Test) {
-    let ret = false;
-    test = array2Test.map(coord => {
-        //console.log(coord, stitchCoord);
-        if(coord.X == stitchCoord.X && coord.Y == stitchCoord.Y) {
-            ret = true;
-        }
-    })
-    return ret;
+function previewClose() {
+    let modal = document.getElementById("previewModal");
+    modal.style.display = "none";
 }
 
-function clearActiveTool() {
-    const collection = document.getElementsByClassName("toolback");
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].classList.remove("activeTool");
-    }
-   
+function previewOpen() {
+    preview(jsonObject);
+    let modal = document.getElementById("previewModal");
+    modal.style.display = "block";
 }
 
 function save() {
@@ -694,188 +675,174 @@ function save() {
     element.click();
 
     document.body.removeChild(element);
-    //console.log(text2write);
-    //dummy.href = 'data:attachment/text' + encodeURI(text2write);
-    //dummy.target = '_blank';
-    //dummy.download = 'out.txt';
-    //dummy.click();
+}
+
+function selectColor(color, symbol) {
+    //console.log(color);
+    const collection = document.getElementsByClassName("colorback");
+    for (let i = 0; i < collection.length; i++) {
+        collection[i].classList.remove("activeColor");
+    }
+
+    for (let i = 0; i < collection.length; i++) {
+        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
+            collection[i].classList.add("activeColor");
+        }
+        //console.log(collection[i].children[0].children[0].innerHTML);
+    }
+
+    highCode = color;
+    highSymbol = symbol;
+
+    if(highFlag) {
+        updateColor(jsonObject);
+    }
 
 
+    footNote.innerText = "Color selected: " + color;    
+    
+}
+
+function setHeight(newHeight) {
+    const collection = document.getElementsByClassName("tile");
+    let newHeightStyle = newHeight + "px";
+    let newFontSizeStyle = Math.round((newHeight*3)/4) + "px";
+
+    for (let i = 0; i < collection.length; i++) {
+        collection[i].style.height = newHeightStyle;
+        collection[i].style.width = newHeightStyle;
+        collection[i].children.item(0).style.fontSize = newFontSizeStyle;
+    }
 
 }
 
-function openFile() {
+function tileClick(x, y, code, symbol) {
+    //console.log(x, y, code, symbol);
 
-    originalObject = {};
-    colorArray = {};
-    jsonObject = {};
+    
+    var obj = {
+        X: x,
+        Y: y,
+        code: code,
+        symbol : symbol
+    }
 
-    let jsonContent = "";
+    if(paintFlag) {
+        paintClick(obj);
+    }
 
-    let input = document.createElement('input');
-    input.type = 'file';
-    input.onchange = _ => {
-    // you can use this method to get file and perform respective operations
-        let file =  input.files[0];
-        console.log(file);
-        if(file) {
-            var reader = new FileReader();
-            reader.readAsText(file, "UTF-8");
-            reader.onload = function (evt) {
-                //console.log(evt.target.result);
-                jsonContent = evt.target.result;
-                loadJSON(JSON.parse(jsonContent));
+    else if(bucketFlag) {
+        bucketClick(obj);
+    }
+
+    else if (highFlag) {
+        selectColor(obj.code, obj.symbol);
+
+    }
+    let tileX = x + 1;
+    let tileY = y + 1;
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
+} 
+
+function undo() {
+    //console.log(changes);
+    changes.pop();
+    //console.log(changes);
+    jsonObject = mergeChanges();
+    fillFlossUsage();
+    //console.log('Undone')
+    updateColor(jsonObject);
+}
+
+function updateColor(data) {
+    for(i=0; i<data.length; i++) {
+        let tileValues = data[i];
+        //console.log(tileContainer.children)
+        let row = tileContainer.children.item(tileValues.Y);
+
+        let tile = row.children.item(tileValues.X)
+
+        let alpha = 1;
+        let spanColor = 'black';
+        let color = 'white';
+        //Check for high contrast
+        if(contrastFlag && tileValues.dmcCode != 0 && tileValues.dmcCode != 1) {
+            if(highFlag) {
+                if(highSymbol == tileValues.symbol) {
+                    spanColor = 'white';
+                    color = 'black';
+                }
+                else {
+                    alpha = 0.25;
+                    spanColor = 'silver';
+                }
             }
+               
+
         }
 
+
+        else {
+            spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'black' : 'white';
+
+            if(highFlag && highSymbol != tileValues.symbol ) {
+                alpha = 0.25;
+                spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'silver' : 'white';
+            }
+
+            color = "rgba(" + tileValues.R + ", " + tileValues.G + ", " + tileValues.B + "," + alpha + ")";
+        }
+        //tile.setAttribute('style', color)
         
-    };
-    input.click();
+        
+        tile.style.backgroundColor = color;
+        let X = tileValues.X + 1;
+        let Y = tileValues.Y + 1;
+        let tileTitle = tileValues.dmcCode + " - " + tileValues.dmcName + " - X: " + X + " - Y: " + Y
+        tile.setAttribute('title', tileTitle)
 
-    
+        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + tileValues.symbol + "\")";
+            
+        tile.setAttribute('onclick', tileClick);
 
-    //console.log(input)
-}
+        //tile.children.item(0).innerHTML = tileValues.symbol;
+        tile.children.item(0).innerText = tileValues.symbol;
 
+        tile.children.item(0).style.color = spanColor;
 
-
-
-function fillFlossUsage() {
-    //clear all elements of the modal
-    let modalList = document.getElementById("modalList");
-    while(modalList.lastElementChild) {
-        modalList.removeChild(modalList.lastElementChild);
     }
-    
-    //Refresh color list
-    colorArray = [];
-    jsonObject.forEach(obj => {
-        //console.log(obj);
-        colorArray = checkAndAddColor(colorArray, obj);
-    })
+}
 
-    //Count already stitched
-    let stitched = 0;
-    let toStitch = 0;
-    colorArray.forEach(obj => {
-        //console.log(obj);
-        if(obj.name == "STITCHED") {
-            stitched = obj.count;
-        }
-        else if(obj.name != "Empty") {
-            toStitch += obj.count;
-        }
-    })
-
-    toStitch += stitched;
-    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
-
-
-    //Sort for table 
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-    
-
-    //Fill properties
-    let par = document.getElementById("properties");
-    par.innerHTML = (jsonObject[Object.keys(jsonObject).length-1].X + 1) + "w x " + (jsonObject[Object.keys(jsonObject).length-1].Y + 1) + "h. " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
-
-
-    //Fill table
-    
-    //let table = document.getElementById("modalTable");
-    let table = document.createElement("table");
-    const headRow = document.createElement('tr');
-
-    let heads = ["Color", "Symbol", "Code", "Name", "Count"];
-    for (let i in heads) {
-        const headCell = document.createElement('th');
-        headCell.textContent = heads[i];
-        headRow.appendChild(headCell);
+function zoomIn() {
+    const collection = document.getElementsByClassName("tile");
+    let height = collection[0].offsetHeight;
+    if(height < MAX_HEIGHT) {
+        let newHeight = height + 2;
+        setHeight(newHeight);
     }
-
-    table.appendChild(headRow);
-
-    let newRow = document.createElement('tr');
-    let newCell = document.createElement('td');
-
-    colors = colorArray.map(color =>  {
-        newRow = document.createElement('tr');
-
-        newCell = document.createElement('td');
-        //newCell.textContent = color.R + "," + color.G + "," + color.B;
-        let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-        newCell.setAttribute('style', backColor);
-        newRow.appendChild(newCell);
-
-        newCell = document.createElement('td');
-        newCell.textContent = color.symbol;
-        newCell.setAttribute('style', 'text-align: center');
-        newRow.appendChild(newCell);
-
-        newCell = document.createElement('td');
-        newCell.textContent = color.code;
-        newCell.setAttribute('style', 'text-align: right');
-        newRow.appendChild(newCell);
-
-        newCell = document.createElement('td');
-        newCell.textContent = color.name;
-        newRow.appendChild(newCell);
-
-        newCell = document.createElement('td');
-        newCell.textContent = color.count;
-        newCell.setAttribute('style', 'text-align: right');
-        newRow.appendChild(newCell);
-
-        table.appendChild(newRow);
-    })
-
-
-    modalList.appendChild(table);
+    console.log('IN');
+    
 }
 
-function flossUsageOpen() {
-    let modal = document.getElementById("myModal");
-    modal.style.display = "block";
-
-
-}
-
-function flossUsageClose() {
-    let modal = document.getElementById("myModal");
-    modal.style.display = "none";
-}
-
-function drawGridLines() {
-    drawHorizontalLines();
-    drawVerticalLines();
-}
-
-function drawHorizontalLines() {
-    //console.log(Math.round(tileContainer.children.length/10));
-
-    for(i = 1; i < Math.round(tileContainer.children.length/10); i++) {
-        let topRow = tileContainer.children.item((i*10)-1);
-        let botRow = tileContainer.children.item((i*10));
-        // row-1 is the 10th row, all tiles should bottom border
-        for(j = 0; j < topRow.children.length; j++) {
-            topRow.children.item(j).style.borderBottom = "2px solid black";
-        }
+function zoomOut() {
+    const collection = document.getElementsByClassName("tile");
+    let height = collection[0].offsetHeight;
+    if(height > MIN_HEIGHT) {
+        let newHeight = height - 2;
+        setHeight(newHeight);
     }
-
+    console.log('IN');
+    
 }
 
-function drawVerticalLines() {
-    for(i = 0; i < tileContainer.children.length; i++) {
-        //Get 9th n-element of each row and add 
-        let row = tileContainer.children.item(i);
+function zoomReset() {
+    zoomResetFlag = !zoomResetFlag;
 
-        for(j=1; j < Math.round(row.children.length/10); j++) {
-            row.children.item((j*10)-1).style.borderRight = "2px solid black";
-        }
+    if(zoomResetFlag) {
+        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length));
+    }
+    else {
+        setHeight(DEFAULT_HEIGHT);
     }
 }
 
