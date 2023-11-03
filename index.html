@@ -1,8 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
     <link rel="shortcut icon" href="#" />
@@ -41,6 +40,11 @@
                 <img src="./img/bucket.png" class="toolImage">
             </div>
         </div>
+        <div id="previewTool" class="toolback">
+            <div title="Preview" class="tool" onclick="previewOpen()">
+                <img src="./img/preview.png" class="toolImage">
+            </div>
+        </div>
         <div id="undoTool" class="toolback" onclick="undo()">
             <div title="Undo" class="tool">
                 <img src="./img/undo.png" class="toolImage">
@@ -74,19 +78,24 @@
 
     <div class="tile-container" data-tile-container></div>
 
-    <div class="footnote" data-footnote></div>
+    <div class="footnote" data-footnote>&euro;</div>
     <div id="myModal" class="modal">
-
         <!-- Modal content -->
         <div class="modal-content">
             <span class="close" onclick="flossUsageClose()">&times;</span>
             <p id="properties"></p>
-            <div id="modalList">
-                
-            </div>
+            <div id="modalList"></div>
         </div>
       
-      </div>
+    </div>
+
+    <div id="previewModal" class="modal">
+        <!-- Modal content -->
+        <div class="modal-content">
+            <span class="close" onclick="previewClose()">&times;</span>
+            <canvas id="canvas"></canvas>
+        </div>
+    </div>
 
     <template data-color-template>
         <div class="colorback" data-color-back>
