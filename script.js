@@ -31,7 +31,7 @@ let alpha = 1;
 let firstLoop = true;
 
 let jsonText = '';
-let jsonFile = 'rabbit.json';
+let jsonFile = 'messi.json';
 let jsonObject = {}; // resulting object after fetch
 let originalObject = {};
 
