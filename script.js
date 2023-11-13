@@ -197,9 +197,10 @@ function fillFlossUsage() {
     //Fill properties
     let par = document.getElementById("properties");
     let hS = jsonObject[Object.keys(jsonObject).length-1].Y + 1;
-    let wS = jsonObject[Object.keys(jsonObject).length-1].X + 1
-    let hCM = (hS * 0.18).toFixed(2);
-    let wCM = (wS * 0.18).toFixed(2);
+    let wS = jsonObject[Object.keys(jsonObject).length-1].X + 1;
+    // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
+    let hCM = (hS * 0.185).toFixed(1);
+    let wCM = (wS * 0.185).toFixed(1);
     par.innerHTML = hS + "h x " + wS + "w (" + hCM + "cm x " + wCM + "cm). " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
 
 
