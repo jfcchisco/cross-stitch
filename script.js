@@ -153,8 +153,15 @@ function drawVerticalLines() {
 function fillFlossUsage() {
     //clear all elements of the modal
     let modalList = document.getElementById("modalList");
+
+    //Clear table
     while(modalList.lastElementChild) {
         modalList.removeChild(modalList.lastElementChild);
+    }
+
+    // Clear color selectors
+    while(colorContainer.lastElementChild) {
+        colorContainer.removeChild(colorContainer.lastElementChild);
     }
     
     //Refresh color list
@@ -243,6 +250,31 @@ function fillFlossUsage() {
         newRow.appendChild(newCell);
 
         table.appendChild(newRow);
+
+
+        // Fill color selectors
+        if(color.code!=0) {
+            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
+            const colorBack = colorDiv.querySelector("[data-color-back]");
+            const colorFront = colorDiv.querySelector("[data-color]");
+            const colorId = colorDiv.querySelector("[data-color-id]");
+
+            colorId.textContent = color.symbol;
+            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
+            
+            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+            colorFront.setAttribute('style', backColor)
+            const colorTitle = color.code + " - " + color.name;
+            colorFront.setAttribute('title', colorTitle);
+            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
+            colorFront.setAttribute('onclick', colorClick);
+
+            if(colorBack != null) {
+                colorBack.classList.add('holyS');
+                console.log('added');
+            }
+            colorContainer.append(colorDiv);
+        }
     })
 
 
@@ -408,35 +440,7 @@ function loadJSON(data) {
         return 0;
     });
     
-    //Clear colors
-    while(colorContainer.lastElementChild) {
-        colorContainer.removeChild(colorContainer.lastElementChild);
-    }
-
-    colors = colorArray.map(color =>  {
-        if(color.code!=0) {
-            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
-            const colorBack = colorDiv.querySelector("[data-color-back]");
-            const colorFront = colorDiv.querySelector("[data-color]");
-            const colorId = colorDiv.querySelector("[data-color-id]");
-
-            colorId.textContent = color.symbol;
-            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
-            
-            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            colorFront.setAttribute('style', backColor)
-            const colorTitle = color.code + " - " + color.name;
-            colorFront.setAttribute('title', colorTitle);
-            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
-            colorFront.setAttribute('onclick', colorClick);
-
-            if(colorBack != null) {
-                colorBack.classList.add('holyS');
-                console.log('added');
-            }
-            colorContainer.append(colorDiv);
-        }
-    })
+    
 
     jsonObject = mergeChanges();
     fillFlossUsage();
