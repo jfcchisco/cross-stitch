@@ -31,7 +31,7 @@ let alpha = 1;
 let firstLoop = true;
 
 let jsonText = '';
-let jsonFile = 'messi.json';
+let jsonFile = 'dino2.json';
 let jsonObject = {}; // resulting object after fetch
 let originalObject = {};
 
