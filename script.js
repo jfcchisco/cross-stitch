@@ -1,8 +1,4 @@
-//let canvas = document.getElementById("canvas")
-//let ctx = canvas.getContext('2d')
-
 const tileContainer = document.getElementsByClassName("tile-container")[0];
-
 const colorTemplate = document.querySelector("[data-color-template]");
 const tileTemplate = document.querySelector("[data-tile-template]");
 const rowTemplate = document.querySelector("[data-row-template]");
@@ -44,7 +40,6 @@ let changes = []; // after a paint event a change has to be added
 var downloadURL = null;
 
 window.onload = function() {
-
     fetch(jsonFile)
         .then(response => {
             return response.text();
@@ -52,8 +47,6 @@ window.onload = function() {
         .then((data) => {
             data = JSON.parse(data);
             loadJSON(data);
-
-            
     })
 }
 
@@ -83,8 +76,7 @@ function checkAndAddColor (colors, line)
 {
     let length = colors.length;
     let found = false;
-    //console.log(line);
-
+    
     for (i = 0; i < length; i ++) {
         
         if(line.dmcCode == colors[i].code) {
@@ -93,7 +85,6 @@ function checkAndAddColor (colors, line)
         }
     }
     
-
     if(!found) {
         colors.push( { 
             "code": line.dmcCode,
@@ -105,9 +96,6 @@ function checkAndAddColor (colors, line)
             "count": 1
         } );
     }
-
-    
-   
     return colors;
 
 }
@@ -144,7 +132,7 @@ function drawVerticalLines() {
         //Get 9th n-element of each row and add 
         let row = tileContainer.children.item(i);
 
-        for(j=1; j < Math.round(row.children.length/10); j++) {
+        for(j=1; j <= Math.round(row.children.length/10); j++) {
             row.children.item((j*10)-1).style.borderRight = "2px solid black";
         }
     }
