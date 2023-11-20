@@ -27,7 +27,9 @@ let alpha = 1;
 let firstLoop = true;
 
 let jsonText = '';
-let jsonFile = 'dino2.json';
+let jsonFiles = ['dino2.json', 'messi.json', 'rabbit.json'];
+let currIndex = 0;
+let jsonFile = jsonFiles[currIndex];
 let jsonObject = {}; // resulting object after fetch
 let originalObject = {};
 
@@ -41,6 +43,20 @@ var downloadURL = null;
 
 window.onload = function() {
     fetch(jsonFile)
+        .then(response => {
+            return response.text();
+        })
+        .then((data) => {
+            data = JSON.parse(data);
+            loadJSON(data);
+    })
+}
+
+function loadNextFile() {
+    currIndex += 1;
+    if(currIndex >= jsonFiles.length) { currIndex = 0}
+
+    fetch(jsonFiles[currIndex])
         .then(response => {
             return response.text();
         })
