@@ -147,9 +147,11 @@ function drawVerticalLines() {
     for(i = 0; i < tileContainer.children.length; i++) {
         //Get 9th n-element of each row and add 
         let row = tileContainer.children.item(i);
-
-        for(j=1; j <= Math.round(row.children.length/10); j++) {
-            row.children.item((j*10)-1).style.borderRight = "2px solid black";
+        for(j=1; j <= row.children.length; j++) {
+            if(j%10==0) {
+                row.children.item(j-1).style.borderRight = "1px solid black";
+                row.children.item(j).style.borderLeft = "1px solid black";
+            }
         }
     }
 }
