@@ -255,8 +255,9 @@ function fillFlossUsage() {
         newCell.textContent = color.count;
         newCell.setAttribute('style', 'text-align: right');
         newRow.appendChild(newCell);
-
-        table.appendChild(newRow);
+	if(color.code!=0) {
+		table.appendChild(newRow);
+	}
 
 
         // Fill color selectors
