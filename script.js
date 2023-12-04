@@ -150,7 +150,9 @@ function drawVerticalLines() {
         for(j=1; j <= row.children.length; j++) {
             if(j%10==0) {
                 row.children.item(j-1).style.borderRight = "1px solid black";
-                row.children.item(j).style.borderLeft = "1px solid black";
+		if(j<row.children.length) {
+                    row.children.item(j).style.borderLeft = "1px solid black";
+		}
             }
         }
     }
