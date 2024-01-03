@@ -27,7 +27,7 @@ let alpha = 1;
 let firstLoop = true;
 
 let jsonText = '';
-let jsonFiles = ['dino2.json', 'messi.json', 'rabbit.json', 'mandala1.json'];
+let jsonFiles = ['liverpool.json', 'dino2.json', 'messi.json', 'rabbit.json', 'mandala1.json'];
 let currIndex = 0;
 let jsonFile = jsonFiles[currIndex];
 let jsonObject = {}; // resulting object after fetch
