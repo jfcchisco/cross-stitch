@@ -588,7 +588,7 @@ function paintClick(stitchCoord) {
             {
                 "X": stitchCoord.X,
                 "Y": stitchCoord.Y,
-                "dmcCode": 1,
+                "dmcCode": 9999,
                 "dmcName": "STITCHED",
                 "R": 0,
                 "G": 255,
