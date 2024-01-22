@@ -433,7 +433,21 @@ function IsCoordAlreadyThere (stitchCoord, array2Test) {
 }
 
 function loadJSON(data) {
+
+    let toCheck = data[0]
+    console.log(toCheck, toCheck['X']);
+    if(!('X' in toCheck) || !('Y' in toCheck)) {
+        console.log('Invalid file');
+        return;
+    }
+    //Placeholder for JSON file check
+    //console.log(data);
+    //console.log('Invalid file...');
+    //return;
     
+    //originalObject = {};
+    //colorArray = {};
+    jsonObject = {};
     originalObject = data; // keep as loaded
     
     // Clear all changes
@@ -523,9 +537,9 @@ function mergeChanges() {
 
 function openFile() {
 
-    originalObject = {};
-    colorArray = {};
-    jsonObject = {};
+    //originalObject = {};
+    //colorArray = {};
+    //jsonObject = {};
 
     let jsonContent = "";
 
