@@ -309,7 +309,7 @@ function getNeighborStitches(X, Y) {
 
     let color2Paint = getStitchColor({X:X,Y:Y});
     //console.log(color2Paint, X, Y);
-    if(color2Paint == '1' || color2Paint == '0') {
+    if(color2Paint == '9999' || color2Paint == '0') {
         return foundStitches;
     }
     
