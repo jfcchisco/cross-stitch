@@ -130,7 +130,7 @@ function drawGridLines() {
 }
 
 function drawHorizontalLines() {
-    for(i = 1; i <= Math.round(tileContainer.children.length/10); i++) {
+    for(i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
         let topRow = tileContainer.children.item((i*10)-1);
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
