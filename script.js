@@ -692,7 +692,12 @@ function save() {
 
     let currentDate = `${currentDay}-${currentMonth}-${currentYear}_${hour}-${mins}-${secs}`;
 
-    let outFile = 'out_' + currentDate + '.json'; 
+    let fileName = prompt("File name:", "");
+    if (fileName == null || fileName == "") {
+        fileName = "out";
+    }
+
+    let outFile = fileName + '_' + currentDate + '.json'; 
 
     console.log("The current date is " + currentDate); 
 
