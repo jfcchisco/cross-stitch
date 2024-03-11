@@ -791,6 +791,7 @@ function updateColor(stitches) {
         let B = tileColor.B;
         let dmcName = tileColor.dmcName;
         let symbol = tileColor.symbol;
+        let code = tileColor.dmcCode;
 
         //console.log(tileContainer.children)
         let row = tileContainer.children.item(tileValues.Y);
@@ -801,26 +802,30 @@ function updateColor(stitches) {
         let spanColor = 'black';
         let color = 'white';
         //Check for high contrast
-        if(contrastFlag && tileValues.dmcCode != 0 && tileValues.dmcCode != 1) {
-            if(highFlag) {
-                if(highSymbol == symbol) {
-                    spanColor = 'white';
-                    color = 'black';
-                }
-                else {
-                    alpha = 0.25;
-                    spanColor = 'silver';
+        if(contrastFlag) {
+            if(code == "9999") {
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+            }
+            
+            else {
+                if(highFlag) {
+                    if(highCode == code) {
+                        spanColor = 'white';
+                        color = 'black';
+                    }
+                    else {
+                        alpha = 0.25;
+                        spanColor = 'silver';
+                    }
                 }
             }
-               
-
         }
 
-
-        else {
+	else {
             spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
 
-            if(highFlag && highSymbol != symbol ) {
+            if(highFlag && highCode != code) {
                 alpha = 0.25;
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
             }
@@ -828,8 +833,6 @@ function updateColor(stitches) {
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
         //tile.setAttribute('style', color)
-        
-        
         tile.style.backgroundColor = color;
         let X = tileValues.X + 1;
         let Y = tileValues.Y + 1;
@@ -839,12 +842,9 @@ function updateColor(stitches) {
         let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + symbol + "\")";
             
         tile.setAttribute('onclick', tileClick);
-
         //tile.children.item(0).innerHTML = tileValues.symbol;
         tile.children.item(0).innerText = symbol;
-
-        tile.children.item(0).style.color = spanColor;
-
+	tile.children.item(0).style.color = spanColor;
     }
 }
 
