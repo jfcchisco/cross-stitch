@@ -77,7 +77,7 @@ function bucket() {
     //clear other flags
     highFlag = false;
     paintFlag = false;
-    updateColor(jsonObject);
+    updateColor(jsonObject.stitches);
 }
 
 function bucketClick(stitchCoord) {
@@ -102,13 +102,15 @@ function checkAndAddColor (colors, line)
     }
     
     if(!found) {
+        let newColor = getDMCValuesFromCode(line.dmcCode)
+        //console.log(getDMCValuesFromCode(line.dmcCode));
         colors.push( { 
             "code": line.dmcCode,
-            "name": line.dmcName,
-            "R": line.R,
-	    "G": line.G,
-	    "B": line.B,
-	    "symbol": line.symbol,
+            "name": newColor.dmcName,
+            "R": newColor.R,
+            "G": newColor.G,
+            "B": newColor.B,
+            "symbol": newColor.symbol,
             "count": 1
         } );
     }
@@ -172,8 +174,7 @@ function fillFlossUsage() {
     
     //Refresh color list
     colorArray = [];
-    jsonObject.forEach(obj => {
-        //console.log(obj);
+    jsonObject.stitches.forEach(obj => {
         colorArray = checkAndAddColor(colorArray, obj);
     })
 
@@ -202,8 +203,8 @@ function fillFlossUsage() {
 
     //Fill properties
     let par = document.getElementById("properties");
-    let hS = jsonObject[Object.keys(jsonObject).length-1].Y + 1;
-    let wS = jsonObject[Object.keys(jsonObject).length-1].X + 1;
+    let hS = jsonObject.stitches[Object.keys(jsonObject.stitches).length-1].Y + 1;
+    let wS = jsonObject.stitches[Object.keys(jsonObject.stitches).length-1].X + 1;
     // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
     let hCM = (hS * 0.185).toFixed(1);
     let wCM = (wS * 0.185).toFixed(1);
@@ -279,7 +280,7 @@ function fillFlossUsage() {
 
             if(colorBack != null) {
                 colorBack.classList.add('holyS');
-                console.log('added');
+                //console.log('added');
             }
             colorContainer.append(colorDiv);
         }
@@ -297,6 +298,18 @@ function flossUsageClose() {
 function flossUsageOpen() {
     let modal = document.getElementById("myModal");
     modal.style.display = "block";
+}
+
+function getDMCValuesFromCode(code) {
+    //console.log(jsonObject);
+    let color2return = {};
+    jsonObject.colors.forEach(obj => {
+        //console.log(code, obj.dmcCode, typeof code, typeof obj.dmcCode);
+        if(obj.dmcCode === code) {
+            color2return = obj;
+        }
+    })
+    return color2return;
 }
 
 function getNeighborStitches(X, Y) {
@@ -358,17 +371,6 @@ function getNeighborStitches(X, Y) {
         //if(getStitchColor({X:stitch2Test.X+1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
 
     }
-
-
-    // process must be repeated for all new found stitches checking for repeated stitches, otherwise it will run forever
-
-
-    
-    //console.log(foundStitches);
-
-
-
-
     return foundStitches;
 }
 
@@ -378,14 +380,12 @@ function getStitchColor(stitchCoord) {
 
     let dmcCode = -1
 
-    stitches = jsonObject.map(stitch => {
-        //console.log(stitch);
+    stitches = jsonObject.stitches.map(stitch => {
         if(stitch.X == X && stitch.Y == Y) {
             dmcCode = stitch.dmcCode;
         }
     });
 
-    //console.log(dmcCode);
     return dmcCode;
     
 }
@@ -400,7 +400,7 @@ function highContrast() {
         document.getElementById("contrastTool").classList.remove("activeTool");
     }
 
-    updateColor(jsonObject);
+    updateColor(jsonObject.stitches);
 }
 
 function highlight() {
@@ -416,7 +416,7 @@ function highlight() {
     paintFlag = false;
     bucketFlag = false;
 
-    updateColor(jsonObject);
+    updateColor(jsonObject.stitches);
 }
 
 function IsCoordAlreadyThere (stitchCoord, array2Test) {
@@ -432,19 +432,11 @@ function IsCoordAlreadyThere (stitchCoord, array2Test) {
 
 function loadJSON(data) {
 
-    let toCheck = data[0]
-    console.log(toCheck, toCheck['X']);
+    let toCheck = data.stitches[0]
     if(!('X' in toCheck) || !('Y' in toCheck)) {
         console.log('Invalid file');
         return;
     }
-    //Placeholder for JSON file check
-    //console.log(data);
-    //console.log('Invalid file...');
-    //return;
-    
-    //originalObject = {};
-    //colorArray = {};
     jsonObject = {};
     originalObject = data; // keep as loaded
     
@@ -452,7 +444,11 @@ function loadJSON(data) {
     changes = [];
 	colorArray = [];
     
-    data.forEach(obj => {
+    //console.log(data);
+
+    jsonObject = mergeChanges();
+
+    data.stitches.forEach(obj => {
         colorArray = checkAndAddColor(colorArray, obj);
     })
 
@@ -461,15 +457,12 @@ function loadJSON(data) {
         if(a.count > b.count) return -1;
         return 0;
     });
-    
-    
 
-    jsonObject = mergeChanges();
     fillFlossUsage();
 
     //Create all divs for tiles
-    cols = data[data.length-1].X+1
-    rows = data[data.length-1].Y+1
+    cols = data.stitches[data.stitches.length-1].X+1
+    rows = data.stitches[data.stitches.length-1].Y+1
 
     if(tileContainer.children.length > 0) {
         console.log("Removing all tiles...")
@@ -493,9 +486,10 @@ function loadJSON(data) {
         tileContainer.append(newRow)
     }
 
-    updateColor(data);
+    updateColor(data.stitches);
     drawGridLines();
 
+    //console.log(jsonObject);
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
@@ -504,16 +498,19 @@ function loadJSON(data) {
 
 function mergeChanges() {
     //jsonObject = originalObject; // restore initial state
-    let newJson = [];
+    let newJson = {}
+    let newStitches = [];
     let foundChange = false;
 
-    for(let j = 0; j < originalObject.length; j++) {
+    let originalStitches = originalObject.stitches;
+
+    for(let j = 0; j < originalStitches.length; j++) {
         foundChange = false;
         for(let i = 0; i < changes.length; i++) {
-            if(changes[i].X == originalObject[j].X && changes[i].Y == originalObject[j].Y && originalObject[j].dmcCode != 0) {
+            if(changes[i].X == originalStitches[j].X && changes[i].Y == originalStitches[j].Y && originalStitches[j].dmcCode != 0) {
                 //console.log(jsonObject.length, jsonObject, originalObject.length, originalObject);
                 //jsonObject[j] = changes[i];
-                newJson.push(changes[i]);
+                newStitches.push(changes[i]);
                 foundChange = true;
                 //j++;
 
@@ -521,23 +518,20 @@ function mergeChanges() {
         }
 
         if(!foundChange) {
-            newJson.push(originalObject[j]);
+            newStitches.push(originalStitches[j]);
         }
 
     }
     
     //fillFlossUsage();
-
+    newJson.stitches = newStitches;
+    newJson.colors = originalObject.colors;
     return(newJson);
     
-    //console.log(jsonObject);
+    
 }
 
 function openFile() {
-
-    //originalObject = {};
-    //colorArray = {};
-    //jsonObject = {};
 
     let jsonContent = "";
 
@@ -546,7 +540,7 @@ function openFile() {
     input.onchange = _ => {
     // you can use this method to get file and perform respective operations
         let file =  input.files[0];
-        console.log(file);
+        //console.log(file);
         if(file) {
             var reader = new FileReader();
             reader.readAsText(file, "UTF-8");
@@ -572,7 +566,7 @@ function paint() {
     highFlag = false;
     bucketFlag = false;
 
-    updateColor(jsonObject);
+    updateColor(jsonObject.stitches);
 }
 
 function paintClick(stitchCoord) {
@@ -593,24 +587,20 @@ function paintClick(stitchCoord) {
         }
     }
     
-
+    //console.log(changes);
 
     if(!alreadyStitched && stitchCoord.X >= 0 && stitchCoord.Y >= 0) {
         changes.push(
             {
                 "X": stitchCoord.X,
                 "Y": stitchCoord.Y,
-                "dmcCode": 9999,
-                "dmcName": "STITCHED",
-                "R": 0,
-                "G": 255,
-                "B": 0,
-                "symbol": "🞮"
+                "dmcCode": "9999",
             },
         )
         jsonObject = mergeChanges();
         fillFlossUsage();
         //console.log(changes);
+        //console.log(jsonObject);
     }
 
     updateColor(changes);
@@ -667,13 +657,14 @@ function previewClose() {
 }
 
 function previewOpen() {
-    preview(jsonObject);
+    preview(jsonObject.stitches);
     let modal = document.getElementById("previewModal");
     modal.style.display = "block";
 }
 
 function save() {
     //mergeChanges();
+    //console.log(jsonObject);
     var text2write = JSON.stringify(jsonObject);
     
     var element = document.createElement('a');
@@ -690,7 +681,7 @@ function save() {
     let secs = String(date.getSeconds()).padStart(2, '0');
     // we will display the date as DD-MM-YYYY 
 
-    let currentDate = `${currentDay}-${currentMonth}-${currentYear}_${hour}-${mins}-${secs}`;
+    let currentDate = `${currentYear}-${currentMonth}-${currentDay}_${hour}-${mins}-${secs}`;
 
     let fileName = prompt("File name:", "");
     if (fileName == null || fileName == "") {
@@ -699,7 +690,7 @@ function save() {
 
     let outFile = fileName + '_' + currentDate + '.json'; 
 
-    console.log("The current date is " + currentDate); 
+    //console.log("The current date is " + currentDate); 
 
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text2write));
     element.setAttribute('download', outFile);
@@ -728,9 +719,9 @@ function selectColor(color, symbol) {
 
     highCode = color;
     highSymbol = symbol;
-
+    //console.log(highCode, highSymbol);
     if(highFlag) {
-        updateColor(jsonObject);
+        updateColor(jsonObject.stitches);
     }
 
 
@@ -786,12 +777,21 @@ function undo() {
     jsonObject = mergeChanges();
     fillFlossUsage();
     //console.log('Undone')
-    updateColor(jsonObject);
+    updateColor(jsonObject.stitches);
 }
 
-function updateColor(data) {
-    for(i=0; i<data.length; i++) {
-        let tileValues = data[i];
+function updateColor(stitches) {
+    for(i=0; i<stitches.length; i++) {
+        let tileValues = stitches[i];
+
+        let tileColor = getDMCValuesFromCode(tileValues.dmcCode);
+
+        let R = tileColor.R;
+        let G = tileColor.G;
+        let B = tileColor.B;
+        let dmcName = tileColor.dmcName;
+        let symbol = tileColor.symbol;
+
         //console.log(tileContainer.children)
         let row = tileContainer.children.item(tileValues.Y);
 
@@ -803,7 +803,7 @@ function updateColor(data) {
         //Check for high contrast
         if(contrastFlag && tileValues.dmcCode != 0 && tileValues.dmcCode != 1) {
             if(highFlag) {
-                if(highSymbol == tileValues.symbol) {
+                if(highSymbol == symbol) {
                     spanColor = 'white';
                     color = 'black';
                 }
@@ -818,14 +818,14 @@ function updateColor(data) {
 
 
         else {
-            spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'black' : 'white';
+            spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
 
-            if(highFlag && highSymbol != tileValues.symbol ) {
+            if(highFlag && highSymbol != symbol ) {
                 alpha = 0.25;
-                spanColor = (((tileValues.R * 0.299)+(tileValues.G * 0.587)+(tileValues.B * 0.114)) > 186) ? 'silver' : 'white';
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
             }
 
-            color = "rgba(" + tileValues.R + ", " + tileValues.G + ", " + tileValues.B + "," + alpha + ")";
+            color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
         //tile.setAttribute('style', color)
         
@@ -833,15 +833,15 @@ function updateColor(data) {
         tile.style.backgroundColor = color;
         let X = tileValues.X + 1;
         let Y = tileValues.Y + 1;
-        let tileTitle = tileValues.dmcCode + " - " + tileValues.dmcName + " - X: " + X + " - Y: " + Y
+        let tileTitle = tileValues.dmcCode + " - " + dmcName + " - X: " + X + " - Y: " + Y
         tile.setAttribute('title', tileTitle)
 
-        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + tileValues.symbol + "\")";
+        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + symbol + "\")";
             
         tile.setAttribute('onclick', tileClick);
 
         //tile.children.item(0).innerHTML = tileValues.symbol;
-        tile.children.item(0).innerText = tileValues.symbol;
+        tile.children.item(0).innerText = symbol;
 
         tile.children.item(0).style.color = spanColor;
 
@@ -855,7 +855,7 @@ function zoomIn() {
         let newHeight = height + 2;
         setHeight(newHeight);
     }
-    console.log('IN');
+    //console.log('IN');
     
 }
 
@@ -866,7 +866,7 @@ function zoomOut() {
         let newHeight = height - 2;
         setHeight(newHeight);
     }
-    console.log('IN');
+    //console.log('IN');
     
 }
 
