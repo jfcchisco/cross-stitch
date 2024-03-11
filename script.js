@@ -210,6 +210,10 @@ function fillFlossUsage() {
     let wCM = (wS * 0.185).toFixed(1);
     par.innerHTML = hS + "h x " + wS + "w (" + hCM + "cm x " + wCM + "cm). " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
 
+    //Fill floss count
+    let flossCountPar = document.getElementById("flossCount");
+    console.log(colorArray.length);
+    flossCountPar.innerHTML = colorArray.length + " colors";
 
     //Fill table
     
@@ -820,9 +824,13 @@ function updateColor(stitches) {
                     }
                 }
             }
+            
+               
+
         }
 
-	else {
+
+        else {
             spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
 
             if(highFlag && highCode != code) {
@@ -833,6 +841,8 @@ function updateColor(stitches) {
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
         //tile.setAttribute('style', color)
+        
+        
         tile.style.backgroundColor = color;
         let X = tileValues.X + 1;
         let Y = tileValues.Y + 1;
@@ -842,9 +852,12 @@ function updateColor(stitches) {
         let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + symbol + "\")";
             
         tile.setAttribute('onclick', tileClick);
+
         //tile.children.item(0).innerHTML = tileValues.symbol;
         tile.children.item(0).innerText = symbol;
-	tile.children.item(0).style.color = spanColor;
+
+        tile.children.item(0).style.color = spanColor;
+
     }
 }
 
