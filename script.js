@@ -74,8 +74,12 @@ function bucket() {
         document.getElementById("bucketTool").classList.add("activeTool");
     }
 
+    if(highFlag) {
+        document.getElementById("highTool").classList.add("activeTool");
+    }
+
     //clear other flags
-    highFlag = false;
+    // highFlag = false;
     paintFlag = false;
     updateColor(jsonObject.stitches);
 }
@@ -566,8 +570,12 @@ function paint() {
         document.getElementById("paintTool").classList.add("activeTool");
     }
 
+    if(highFlag) {
+        document.getElementById("highTool").classList.add("activeTool");
+    }
+
     //clear other flags
-    highFlag = false;
+    // highFlag = false;
     bucketFlag = false;
 
     updateColor(jsonObject.stitches);
