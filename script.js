@@ -840,15 +840,15 @@ function updateColor(stitches) {
 
         else {
             spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-	    
-	    if(code == "9999") {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-            }
 		
             if(highFlag && highCode != code) {
                 alpha = 0.25;
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
+            }
+	    if(code == "9999") {
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+		alpha = 1;
             }
 
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
