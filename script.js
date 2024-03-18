@@ -287,9 +287,9 @@ function fillFlossUsage() {
             colorFront.setAttribute('onclick', colorClick);
 
 	    // collection[i].classList.remove("activeColor")
-	    if(highFlag && color.code == highCode) {
-		colorBack.classList.add('activeColor')
-	    }
+	    // if(highFlag && color.code == highCode) {
+	    //     colorBack.classList.add('activeColor')
+	    // }
 
             if(colorBack != null) {
                 colorBack.classList.add('holyS');
