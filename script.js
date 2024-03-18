@@ -286,6 +286,11 @@ function fillFlossUsage() {
             const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
             colorFront.setAttribute('onclick', colorClick);
 
+	    // collection[i].classList.remove("activeColor")
+	    if(highFlag && color.code == highCode) {
+		colorBack.classList.add('activeColor')
+	    }
+
             if(colorBack != null) {
                 colorBack.classList.add('holyS');
                 //console.log('added');
