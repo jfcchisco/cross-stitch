@@ -868,7 +868,7 @@ function updateColor(stitches) {
         let tileTitle = tileValues.dmcCode + " - " + dmcName + " - X: " + X + " - Y: " + Y
         tile.setAttribute('title', tileTitle)
 
-        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", " + tileValues.dmcCode + ", \"" + symbol + "\")";
+        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", \"" + tileValues.dmcCode + "\", \"" + symbol + "\")";
             
         tile.setAttribute('onclick', tileClick);
 
