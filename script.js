@@ -7,7 +7,7 @@ const footNote = document.querySelector("[data-footnote]");
 
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
-let DEFAULT_HEIGHT = 24;
+let DEFAULT_HEIGHT = 20;
 
 let box = 50; // Stitch width and height
 let i = 0;
