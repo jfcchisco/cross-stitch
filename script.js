@@ -404,6 +404,17 @@ function getStitchColor(stitchCoord) {
     
 }
 
+function getStitched() {
+    let stitched = 0;
+    colorArray.forEach(obj => {
+        //console.log(obj);
+        if(obj.code == "9999") {
+            stitched = obj.count;
+        }
+    })
+    return(stitched);
+}
+
 function highContrast() {
     contrastFlag = !contrastFlag;
 
@@ -507,7 +518,7 @@ function loadJSON(data) {
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
-
+    footNote.innerText = "Stitched: " + getStitched();  
 }
 
 function mergeChanges() {
@@ -743,7 +754,7 @@ function selectColor(color, symbol) {
     }
 
 
-    footNote.innerText = "Color selected: " + color;    
+    footNote.innerText = "Color selected: " + color + " | Stitched: " + getStitched();    
     
 }
 
@@ -785,7 +796,7 @@ function tileClick(x, y, code, symbol) {
     }
     let tileX = x + 1;
     let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code;
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code + " | Stitched: " + getStitched();
 } 
 
 function undo() {
@@ -876,7 +887,7 @@ function updateColor(stitches) {
         tile.children.item(0).innerText = symbol;
 
         tile.children.item(0).style.color = spanColor;
-
+        footNote.innerText = "Stitched: " + getStitched();  
     }
 }
 
