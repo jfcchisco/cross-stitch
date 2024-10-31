@@ -1,4 +1,9 @@
 {
+"properties":
+{
+	"width":140,
+	"height":140
+},
 "colors":
 	[
 		{"dmcCode":"444","dmcName":"Lemon Dark","R":255,"G":214,"B":0,"symbol":"0"},
