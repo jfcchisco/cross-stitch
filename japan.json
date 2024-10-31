@@ -1,4 +1,9 @@
 {
+"properties":
+{
+	"width":240,
+	"height":135
+},
 "colors":
 	[
 		{"dmcCode":"09","dmcName":"Cocoa Very Dark","R":85,"G":32,"B":14,"symbol":"i"},
