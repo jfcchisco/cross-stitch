@@ -108,7 +108,6 @@ function checkAndAddColor (colors, line)
     
     if(!found) {
         let newColor = getDMCValuesFromCode(line.dmcCode)
-        //console.log(getDMCValuesFromCode(line.dmcCode));
         colors.push( { 
             "code": line.dmcCode,
             "name": newColor.dmcName,
@@ -129,6 +128,52 @@ function clearActiveTool() {
         collection[i].classList.remove("activeTool");
     }
    
+}
+
+function convertFileToStitches(data) {
+    let dataOut = {};
+    let newStitches = [];
+    // Change in json file format, this converts stitches to previous format
+    let stitchNumber = 0;
+    for(let y = 0; y < data.properties.height; y++) {
+        for(let x = 0; x < data.properties.width; x++) {
+            if(x > data.stitches[stitchNumber].X && y == data.stitches[stitchNumber].Y) {
+                // change in x direction
+                stitchNumber += 1; // this is dumb, for God's sake
+            }
+            else if(x == 0 && y > data.stitches[stitchNumber].Y) {
+                // change in y direction
+                stitchNumber += 1;
+            }
+            newStitches.push({"X":x,"Y":y,"dmcCode":data.stitches[stitchNumber].dmcCode});
+        }
+    }
+    
+    dataOut.stitches = newStitches;
+    dataOut.properties = data.properties;
+    dataOut.colors = data.colors;
+
+    return dataOut;
+}
+
+function convertStitchesToFile(data) {
+    let dataOut = {};
+    let newStitches = [];
+    for (const [index, stitch] of data.stitches.entries()) {
+        if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
+            //Last stitch
+            newStitches.push(stitch);
+            continue;
+        }
+        else if(stitch.dmcCode != data.stitches[index + 1].dmcCode) {
+            newStitches.push(stitch);
+        }
+    }
+
+    dataOut.stitches = newStitches;
+    dataOut.properties = data.properties;
+    dataOut.colors = data.colors;
+    return dataOut;
 }
 
 function drawGridLines() {
@@ -187,7 +232,6 @@ function fillFlossUsage() {
     let stitched = 0;
     let toStitch = 0;
     colorArray.forEach(obj => {
-        //console.log(obj);
         if(obj.code == "9999") {
             stitched = obj.count;
         }
@@ -217,7 +261,6 @@ function fillFlossUsage() {
 
     //Fill floss count
     let flossCountPar = document.getElementById("flossCount");
-    console.log(colorArray.length);
     flossCountPar.innerHTML = colorArray.length + " colors";
 
     //Fill table
@@ -294,7 +337,6 @@ function fillFlossUsage() {
 
             if(colorBack != null) {
                 colorBack.classList.add('holyS');
-                //console.log('added');
             }
             colorContainer.append(colorDiv);
         }
@@ -317,7 +359,6 @@ function flossUsageOpen() {
 function getDMCName(code) {
     let dmcName = "Unknown";
     jsonObject.colors.forEach(obj => {
-        //console.log(code, obj.dmcCode, typeof code, typeof obj.dmcCode);
         if(obj.dmcCode === code) {
             dmcName = obj.dmcName;
         }
@@ -326,10 +367,8 @@ function getDMCName(code) {
 }
 
 function getDMCValuesFromCode(code) {
-    //console.log(jsonObject);
     let color2return = {};
     jsonObject.colors.forEach(obj => {
-        //console.log(code, obj.dmcCode, typeof code, typeof obj.dmcCode);
         if(obj.dmcCode === code) {
             color2return = obj;
         }
@@ -344,7 +383,6 @@ function getNeighborStitches(X, Y) {
     let newStitches = [];
 
     let color2Paint = getStitchColor({X:X,Y:Y});
-    //console.log(color2Paint, X, Y);
     if(color2Paint == '9999' || color2Paint == '0') {
         return foundStitches;
     }
@@ -361,13 +399,10 @@ function getNeighborStitches(X, Y) {
     });
     
 
-    //console.log(foundStitches, newStitches);
-
     // check four stitches that share an edge with the clicked
     while(newStitches.length > 0) {
         //check last element of array
         let stitch2Test = newStitches[newStitches.length-1];
-        //console.log(stitch2Test);
         //and remove it
         newStitches.pop();
 
@@ -418,7 +453,6 @@ function getStitchColor(stitchCoord) {
 function getStitched() {
     let stitched = 0;
     colorArray.forEach(obj => {
-        //console.log(obj);
         if(obj.code == "9999") {
             stitched = obj.count;
         }
@@ -440,10 +474,8 @@ function highContrast() {
 }
 
 function highlight() {
-    //console.log(highFlag);
     clearActiveTool();
     highFlag = !highFlag;
-    //console.log(highFlag);
     if(highFlag) {
         document.getElementById("highTool").classList.add("activeTool");
     }
@@ -458,7 +490,6 @@ function highlight() {
 function IsCoordAlreadyThere (stitchCoord, array2Test) {
     let ret = false;
     test = array2Test.map(coord => {
-        //console.log(coord, stitchCoord);
         if(coord.X == stitchCoord.X && coord.Y == stitchCoord.Y) {
             ret = true;
         }
@@ -467,6 +498,9 @@ function IsCoordAlreadyThere (stitchCoord, array2Test) {
 }
 
 function loadJSON(data) {
+    // Convert stitches
+    data = convertFileToStitches(data);
+
 
     let toCheck = data.stitches[0]
     if(!('X' in toCheck) || !('Y' in toCheck)) {
@@ -480,8 +514,6 @@ function loadJSON(data) {
     changes = [];
 	colorArray = [];
     
-    //console.log(data);
-
     jsonObject = mergeChanges();
 
     data.stitches.forEach(obj => {
@@ -525,7 +557,6 @@ function loadJSON(data) {
     updateColor(data.stitches);
     drawGridLines();
 
-    //console.log(jsonObject);
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
@@ -544,7 +575,6 @@ function mergeChanges() {
         foundChange = false;
         for(let i = 0; i < changes.length; i++) {
             if(changes[i].X == originalStitches[j].X && changes[i].Y == originalStitches[j].Y && originalStitches[j].dmcCode != 0) {
-                //console.log(jsonObject.length, jsonObject, originalObject.length, originalObject);
                 //jsonObject[j] = changes[i];
                 newStitches.push(changes[i]);
                 foundChange = true;
@@ -562,6 +592,7 @@ function mergeChanges() {
     //fillFlossUsage();
     newJson.stitches = newStitches;
     newJson.colors = originalObject.colors;
+    newJson.properties = originalObject.properties;
     return(newJson);
     
     
@@ -576,12 +607,10 @@ function openFile() {
     input.onchange = _ => {
     // you can use this method to get file and perform respective operations
         let file =  input.files[0];
-        //console.log(file);
         if(file) {
             var reader = new FileReader();
             reader.readAsText(file, "UTF-8");
             reader.onload = function (evt) {
-                //console.log(evt.target.result);
                 jsonContent = evt.target.result;
                 loadJSON(JSON.parse(jsonContent));
             }
@@ -612,23 +641,17 @@ function paint() {
 function paintClick(stitchCoord) {
     let alreadyStitched = false;
 
-    //console.log(getStitchColor(stitchCoord));
-
     if(stitchCoord.X < 0 || stitchCoord.Y < 0 || getStitchColor(stitchCoord) == 0) {
         return;
     }
 
     for(let i = 0; i < changes.length; i++) {
-        //console.log(i, changes[i], stitchCoord);
-        //console.log(changes[i].X, stitchCoord.X, changes[i].Y, stitchCoord.Y);
         if(changes[i].X == stitchCoord.X && changes[i].Y == stitchCoord.Y) {
             alreadyStitched = true;
             
         }
     }
     
-    //console.log(changes);
-
     if(!alreadyStitched && stitchCoord.X >= 0 && stitchCoord.Y >= 0) {
         changes.push(
             {
@@ -639,8 +662,6 @@ function paintClick(stitchCoord) {
         )
         jsonObject = mergeChanges();
         fillFlossUsage();
-        //console.log(changes);
-        //console.log(jsonObject);
     }
 
     updateColor(changes);
@@ -653,8 +674,7 @@ function preview(data) {
     let modal = document.getElementById("previewModal");
 
     let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
-    //console.log(box);
-
+    
     canvas.height = box * rows;
     canvas.width =  box * cols;
 
@@ -670,16 +690,13 @@ function preview(data) {
 
     for(i=0; i<data.length; i++) {
         let tileValues = data[i];
-        //console.log(tileContainer.children)
         let row = tileContainer.children.item(tileValues.Y);
         let tile = row.children.item(tileValues.X)
 
-        //console.log(tile.style.backgroundColor);
         let backColor = tile.style.backgroundColor;
         if(!backColor.match('rgba')) {
             ctx.fillStyle = backColor;
             ctx.fillRect(tileValues.X * box, tileValues.Y * box, tileValues.X * box + box, tileValues.Y * box + box);
-            //console.log('RGBA color', backColor)
         }
         else {
             ctx.fillStyle = "#ffffff";
@@ -704,8 +721,7 @@ function previewOpen() {
 
 function save() {
     //mergeChanges();
-    //console.log(jsonObject);
-    var text2write = JSON.stringify(jsonObject);
+    var text2write = JSON.stringify(convertStitchesToFile(jsonObject));
     
     var element = document.createElement('a');
 
@@ -730,8 +746,6 @@ function save() {
 
     let outFile = fileName + '_' + currentDate + '.json'; 
 
-    //console.log("The current date is " + currentDate); 
-
     element.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text2write));
     element.setAttribute('download', outFile);
 
@@ -744,7 +758,6 @@ function save() {
 }
 
 function selectColor(color, symbol) {
-    //console.log(color);
     const collection = document.getElementsByClassName("colorback");
     for (let i = 0; i < collection.length; i++) {
         collection[i].classList.remove("activeColor");
@@ -754,12 +767,10 @@ function selectColor(color, symbol) {
         if(collection[i].children[0].children[0].children[0].innerText == symbol) {
             collection[i].classList.add("activeColor");
         }
-        //console.log(collection[i].children[0].children[0].innerHTML);
     }
 
     highCode = color;
     highSymbol = symbol;
-    //console.log(highCode, highSymbol);
     if(highFlag) {
         updateColor(jsonObject.stitches);
     }
@@ -783,9 +794,6 @@ function setHeight(newHeight) {
 }
 
 function tileClick(x, y, code, symbol) {
-    //console.log(x, y, code, symbol);
-
-    
     var obj = {
         X: x,
         Y: y,
@@ -811,12 +819,9 @@ function tileClick(x, y, code, symbol) {
 } 
 
 function undo() {
-    //console.log(changes);
     changes.pop();
-    //console.log(changes);
     jsonObject = mergeChanges();
     fillFlossUsage();
-    //console.log('Undone')
     updateColor(jsonObject.stitches);
 }
 
@@ -833,7 +838,6 @@ function updateColor(stitches) {
         let symbol = tileColor.symbol;
         let code = tileColor.dmcCode;
 
-        //console.log(tileContainer.children)
         let row = tileContainer.children.item(tileValues.Y);
 
         let tile = row.children.item(tileValues.X)
@@ -909,8 +913,6 @@ function zoomIn() {
         let newHeight = height + 2;
         setHeight(newHeight);
     }
-    //console.log('IN');
-    
 }
 
 function zoomOut() {
@@ -920,8 +922,6 @@ function zoomOut() {
         let newHeight = height - 2;
         setHeight(newHeight);
     }
-    //console.log('IN');
-    
 }
 
 function zoomReset() {
@@ -943,17 +943,14 @@ window.onclick = function(event) {
 }
 
 window.addEventListener('resize', function(event) {
-    //console.log("Changed size")
-
+    
     var body = document.body;
     html = document.documentElement;
 
     //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
-    //console.log(body.offsetHeight);
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
 
     tileContainer.style.height = height+"px";
-    //console.log(tileContainer.style)
-
+    
 }, true);
 
