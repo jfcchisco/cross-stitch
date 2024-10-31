@@ -314,6 +314,17 @@ function flossUsageOpen() {
     modal.style.display = "block";
 }
 
+function getDMCName(code) {
+    let dmcName = "Unknown";
+    jsonObject.colors.forEach(obj => {
+        //console.log(code, obj.dmcCode, typeof code, typeof obj.dmcCode);
+        if(obj.dmcCode === code) {
+            dmcName = obj.dmcName;
+        }
+    })
+    return dmcName;
+}
+
 function getDMCValuesFromCode(code) {
     //console.log(jsonObject);
     let color2return = {};
@@ -754,7 +765,7 @@ function selectColor(color, symbol) {
     }
 
 
-    footNote.innerText = "Color selected: " + color + " | Stitched: " + getStitched();    
+    footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
     
 }
 
@@ -796,7 +807,7 @@ function tileClick(x, y, code, symbol) {
     }
     let tileX = x + 1;
     let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code + " | Stitched: " + getStitched();
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
 } 
 
 function undo() {
