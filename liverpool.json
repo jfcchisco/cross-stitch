@@ -1,4 +1,9 @@
 {
+"properties":
+{
+	"width":60,
+	"height":80
+},
 "colors":
 	[
 		{"dmcCode":"310","dmcName":"Black","R":0,"G":0,"B":0,"symbol":"1"},
