@@ -1,4 +1,9 @@
 {
+"properties":
+{
+	"width":161,
+	"height":174
+},
 "colors":
 	[
 		{"dmcCode":"3031","dmcName":"Mocha Brown Very Dark","R":75,"G":60,"B":42,"symbol":"3"},
