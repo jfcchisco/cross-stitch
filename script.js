@@ -87,10 +87,21 @@ function bucket() {
 
 function bucketClick(stitchCoord) {
     let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
+    console.log(stitches2Paint.length);
 
-    stitches2Paint.forEach(stitch => {
-        paintClick(stitch);
-    })
+    if(stitches2Paint.length > 20) {
+        let message = stitches2Paint.length + " stitches will be painted, are you sure?"
+        if(confirm(message)) {
+            stitches2Paint.forEach(stitch => {
+                paintClick(stitch);
+            })
+        }
+    }
+    else {
+        stitches2Paint.forEach(stitch => {
+            paintClick(stitch);
+        })
+    }
 }
 
 function checkAndAddColor (colors, line) 
