@@ -78,7 +78,7 @@
 		{"dmcCode":"3857","dmcName":"Rosewood Dark","R":104,"G":37,"B":26,"symbol":"R"},
 		{"dmcCode":"3858","dmcName":"Rosewood Medium","R":150,"G":74,"B":63,"symbol":"x"},
 		{"dmcCode":"3861","dmcName":"Cocoa Light","R":166,"G":136,"B":129,"symbol":"-"},
-		{"dmcCode":"9999","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"}
+		{"dmcCode":"stitched","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"}
 	],
 	
 "stitches":
