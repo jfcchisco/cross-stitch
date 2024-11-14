@@ -12,7 +12,7 @@
 		{"dmcCode":"321","dmcName":"Red","R":199,"G":43,"B":59,"symbol":"3"},
 		{"dmcCode":"307","dmcName":"Lemon","R":253,"G":237,"B":84,"symbol":"4"},
 		{"dmcCode":"310","dmcName":"Black","R":0,"G":0,"B":0,"symbol":"1"},
-		{"dmcCode":"9999","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"}
+		{"dmcCode":"stitched","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"}
 	],
 	
 "stitches":
