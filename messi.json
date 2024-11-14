@@ -138,7 +138,8 @@
 		{"dmcCode":"3852","dmcName":"Straw Very Dark","R":205,"G":157,"B":55,"symbol":"¦"},
 		{"dmcCode":"19","dmcName":"Autumn Gold medium Light","R":247,"G":201,"B":95,"symbol":"·"},
 		{"dmcCode":"729","dmcName":"Old Gold Medium","R":208,"G":165,"B":62,"symbol":"l"},
-		{"dmcCode":"610","dmcName":"Drab Brown Dark","R":121,"G":96,"B":71,"symbol":"K"}
+		{"dmcCode":"610","dmcName":"Drab Brown Dark","R":121,"G":96,"B":71,"symbol":"K"},
+		{"dmcCode":"stitched","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"}
 	],
 	
 "stitches":
