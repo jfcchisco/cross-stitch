@@ -28,7 +28,7 @@ let firstLoop = true;
 
 let jsonText = '';
 // let jsonFiles = ['liverpool.json', 'messi.json', 'japan.json', 'bunny.json', 'dino2.json', 'rabbit.json', 'mandala1.json'];
-let jsonFiles = ['liverpool.json','japan.json', 'cuphead.json',  'messi.json'];
+let jsonFiles = ['liverpool.json', 'messi.json', 'japan.json', 'cuphead.json'];
 let currIndex = 0;
 let jsonFile = jsonFiles[currIndex];
 let jsonObject = {}; // resulting object after fetch
@@ -243,10 +243,10 @@ function fillFlossUsage() {
     let stitched = 0;
     let toStitch = 0;
     colorArray.forEach(obj => {
-        if(obj.code == "9999") {
+        if(obj.code == "stitched") {
             stitched = obj.count;
         }
-        else if(obj.code != "0") {
+        else if(obj.code != "empty") {
             toStitch += obj.count;
         }
     })
@@ -293,39 +293,41 @@ function fillFlossUsage() {
     let newCell = document.createElement('td');
 
     colors = colorArray.map(color =>  {
-        newRow = document.createElement('tr');
+        if(color.code != "empty") {
+            newRow = document.createElement('tr');
 
-        newCell = document.createElement('td');
-        //newCell.textContent = color.R + "," + color.G + "," + color.B;
-        let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-        newCell.setAttribute('style', backColor);
-        newRow.appendChild(newCell);
+            newCell = document.createElement('td');
+            //newCell.textContent = color.R + "," + color.G + "," + color.B;
+            let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+            newCell.setAttribute('style', backColor);
+            newRow.appendChild(newCell);
 
-        newCell = document.createElement('td');
-        newCell.textContent = color.symbol;
-        newCell.setAttribute('style', 'text-align: center');
-        newRow.appendChild(newCell);
+            newCell = document.createElement('td');
+            newCell.textContent = color.symbol;
+            newCell.setAttribute('style', 'text-align: center');
+            newRow.appendChild(newCell);
 
-        newCell = document.createElement('td');
-        newCell.textContent = color.code;
-        newCell.setAttribute('style', 'text-align: right');
-        newRow.appendChild(newCell);
+            newCell = document.createElement('td');
+            newCell.textContent = color.code;
+            newCell.setAttribute('style', 'text-align: right');
+            newRow.appendChild(newCell);
 
-        newCell = document.createElement('td');
-        newCell.textContent = color.name;
-        newRow.appendChild(newCell);
+            newCell = document.createElement('td');
+            newCell.textContent = color.name;
+            newRow.appendChild(newCell);
 
-        newCell = document.createElement('td');
-        newCell.textContent = color.count;
-        newCell.setAttribute('style', 'text-align: right');
-        newRow.appendChild(newCell);
-	if(color.code!=0) {
-		table.appendChild(newRow);
-	}
+            newCell = document.createElement('td');
+            newCell.textContent = color.count;
+            newCell.setAttribute('style', 'text-align: right');
+            newRow.appendChild(newCell);
+            table.appendChild(newRow);
+        }
+        
+        
 
 
         // Fill color selectors
-        if(color.code!=0) {
+        if(color.code!="empty") {
             const colorDiv = colorTemplate.content.cloneNode(true).children[0];
             const colorBack = colorDiv.querySelector("[data-color-back]");
             const colorFront = colorDiv.querySelector("[data-color]");
@@ -394,7 +396,7 @@ function getNeighborStitches(X, Y) {
     let newStitches = [];
 
     let color2Paint = getStitchColor({X:X,Y:Y});
-    if(color2Paint == '9999' || color2Paint == '0') {
+    if(color2Paint == 'stitched' || color2Paint == '0') {
         return foundStitches;
     }
     
@@ -464,7 +466,7 @@ function getStitchColor(stitchCoord) {
 function getStitched() {
     let stitched = 0;
     colorArray.forEach(obj => {
-        if(obj.code == "9999") {
+        if(obj.code == "stitched") {
             stitched = obj.count;
         }
     })
@@ -668,7 +670,7 @@ function paintClick(stitchCoord) {
             {
                 "X": stitchCoord.X,
                 "Y": stitchCoord.Y,
-                "dmcCode": "9999",
+                "dmcCode": "stitched",
             },
         )
         jsonObject = mergeChanges();
@@ -858,7 +860,7 @@ function updateColor(stitches) {
         let color = 'white';
         //Check for high contrast
         if(contrastFlag) {
-            if(code == "9999") {
+            if(code == "stitched") {
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
                 color = "rgba(" + R + ", " + G + ", " + B + ",1)";
             }
@@ -888,7 +890,7 @@ function updateColor(stitches) {
                 alpha = 0.25;
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
             }
-	    if(code == "9999") {
+	    if(code == "stitched") {
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
                 color = "rgba(" + R + ", " + G + ", " + B + ",1)";
 		alpha = 1;
@@ -906,9 +908,11 @@ function updateColor(stitches) {
         tile.setAttribute('title', tileTitle)
 
         let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", \"" + tileValues.dmcCode + "\", \"" + symbol + "\")";
-            
-        tile.setAttribute('onclick', tileClick);
-
+        
+        if(code != "empty") {
+            tile.setAttribute('onclick', tileClick);
+        }
+        
         //tile.children.item(0).innerHTML = tileValues.symbol;
         tile.children.item(0).innerText = symbol;
 
