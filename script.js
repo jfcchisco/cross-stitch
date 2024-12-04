@@ -194,7 +194,7 @@ function drawGridLines() {
 
 function drawHorizontalLines() {
     for(i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
-        let topRow = tileContainer.children.item((i*10)-1);
+        let topRow = tileContainer.children.item((i*10));
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
         for(j = 0; j < topRow.children.length; j++) {
@@ -210,9 +210,9 @@ function drawVerticalLines() {
         let row = tileContainer.children.item(i);
         for(j=1; j <= row.children.length; j++) {
             if(j%10==0) {
-                row.children.item(j-1).style.borderRight = "1px solid black";
-		if(j<row.children.length) {
-                    row.children.item(j).style.borderLeft = "1px solid black";
+                row.children.item(j).style.borderRight = "1px solid black";
+		if(j<row.children.length-1) {
+                    row.children.item(j+1).style.borderLeft = "1px solid black";
 		}
             }
         }
@@ -542,6 +542,8 @@ function loadJSON(data) {
     fillFlossUsage();
 
     //Create all divs for tiles
+    //One additional because the array starts at zero
+    //Another additional 
     cols = data.stitches[data.stitches.length-1].X+1
     rows = data.stitches[data.stitches.length-1].Y+1
 
@@ -552,8 +554,44 @@ function loadJSON(data) {
           }
     }
     
+    const rulerRow = rowTemplate.content.cloneNode(true).children[0];
+    
+    //Adding vertical ruler div
+    const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
+    rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: white;");
+    rulerRow.append(rulerDiv);
+
+    for(i=1; i<=cols; i++)  {
+        const tileDiv = tileTemplate.content.cloneNode(true).children[0];
+        tileDiv.setAttribute('style', "background-color: white");
+        if(i%10 == 0) {
+            tileDiv.children.item(0).innerText = i/10;
+            tileDiv.children.item(0).setAttribute('style', "float: right;");
+        }
+        if(i%10 == 1) {
+            tileDiv.children.item(0).innerText = 0;
+            tileDiv.children.item(0).setAttribute('style', "float: left;");
+        }
+        rulerRow.append(tileDiv);
+    }
+
+    rulerRow.setAttribute('style', "position: sticky; top: 0")
+    tileContainer.append(rulerRow);
+
     for(j=1; j<=rows; j++) {
         const newRow = rowTemplate.content.cloneNode(true).children[0];
+
+        //Adding vertical ruler div
+        const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
+        rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: white;");
+        if(j%10 == 0) {
+            rulerDiv.children.item(0).innerText = j/10;
+            
+        }if(j%10 == 1) {
+            rulerDiv.children.item(0).innerText = 0;
+        }
+        newRow.append(rulerDiv);
+
         for(i=1; i<=cols; i++)  {
             const tileDiv = tileTemplate.content.cloneNode(true).children[0];
             if(i%2==0) {
@@ -851,9 +889,11 @@ function updateColor(stitches) {
         let symbol = tileColor.symbol;
         let code = tileColor.dmcCode;
 
-        let row = tileContainer.children.item(tileValues.Y);
+        //+1 to compensate for the horizontal ruler
+        let row = tileContainer.children.item(tileValues.Y + 1);
 
-        let tile = row.children.item(tileValues.X)
+        //+1 to compensate for the vertical ruler
+        let tile = row.children.item(tileValues.X + 1);
 
         let alpha = 1;
         let spanColor = 'black';
