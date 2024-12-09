@@ -558,7 +558,7 @@ function loadJSON(data) {
     
     //Adding vertical ruler div
     const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-    rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: white;");
+    rulerDiv.setAttribute('style', "position: fixed; left: 0; background-color: white;");
     rulerRow.append(rulerDiv);
 
     for(i=1; i<=cols; i++)  {
@@ -583,7 +583,7 @@ function loadJSON(data) {
 
         //Adding vertical ruler div
         const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-        rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: white;");
+        rulerDiv.setAttribute('style', "position: fixed; left: 0; background-color: white;");
         if(j%10 == 0) {
             rulerDiv.children.item(0).innerText = j/10;
             
