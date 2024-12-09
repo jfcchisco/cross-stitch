@@ -563,7 +563,7 @@ function loadJSON(data) {
 
     for(i=1; i<=cols; i++)  {
         const tileDiv = tileTemplate.content.cloneNode(true).children[0];
-        tileDiv.setAttribute('style', "background-color: white");
+        tileDiv.setAttribute('style', "background-color: rgb(241, 241, 241);");
         if(i%10 == 0) {
             tileDiv.children.item(0).innerText = i/10;
             tileDiv.children.item(0).setAttribute('style', "float: right;");
