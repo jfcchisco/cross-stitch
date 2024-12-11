@@ -866,7 +866,7 @@ function tileClick(x, y, code, symbol) {
     }
     let tileX = x + 1;
     let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code:" + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
 } 
 
 function undo() {
