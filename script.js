@@ -739,10 +739,14 @@ function preview(data) {
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for(i=0; i<data.length; i++) {
+    for(i = 0; i < data.length; i++) {
         let tileValues = data[i];
-        let row = tileContainer.children.item(tileValues.Y);
-        let tile = row.children.item(tileValues.X)
+        if(i < 10) {
+            console.log(tileValues);
+        }
+        //Adding offset due to ruler
+        let row = tileContainer.children.item(tileValues.Y + 1);
+        let tile = row.children.item(tileValues.X + 1)
 
         let backColor = tile.style.backgroundColor;
         if(!backColor.match('rgba')) {
@@ -753,10 +757,7 @@ function preview(data) {
             ctx.fillStyle = "#ffffff";
             ctx.fillRect(tileValues.X * box, tileValues.Y * box, tileValues.X * box + box, tileValues.Y * box + box);
         }
-        
-        
     }
-    
 }
 
 function previewClose() {
