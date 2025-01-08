@@ -86,9 +86,9 @@ function bucket() {
 }
 
 function bucketClick(stitchCoord) {
-    if(highFlag && stitchCoord.code != highCode) {
-        return;
-    }
+    //if(highFlag && stitchCoord.code != highCode) {
+    //    return;
+    //}
 
     let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
     console.log(stitches2Paint.length);
