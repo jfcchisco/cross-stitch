@@ -705,9 +705,9 @@ function paint() {
 }
 
 function paintClick(stitchCoord) {
-    if(highFlag && stitchCoord.code != highCode) {
-        return;
-    }
+    //if(highFlag && stitchCoord.code != highCode) {
+    //    return;
+    //}
 
     let alreadyStitched = false;
 
