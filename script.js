@@ -86,6 +86,10 @@ function bucket() {
 }
 
 function bucketClick(stitchCoord) {
+    if(highFlag && stitchCoord.code != highCode) {
+        return;
+    }
+
     let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
     console.log(stitches2Paint.length);
 
@@ -354,7 +358,10 @@ function fillFlossUsage() {
             colorContainer.append(colorDiv);
         }
     })
-
+    
+    if (highFlag) {
+        selectColor(highCode, highSymbol);
+    }
 
     modalList.appendChild(table);
 }
@@ -690,6 +697,10 @@ function paint() {
 }
 
 function paintClick(stitchCoord) {
+    if(highFlag && stitchCoord.code != highCode) {
+        return;
+    }
+
     let alreadyStitched = false;
 
     if(stitchCoord.X < 0 || stitchCoord.Y < 0 || getStitchColor(stitchCoord) == 0) {
