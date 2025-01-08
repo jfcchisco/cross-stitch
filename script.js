@@ -214,10 +214,14 @@ function drawVerticalLines() {
         let row = tileContainer.children.item(i);
         for(j=1; j <= row.children.length; j++) {
             if(j%10==0) {
-                row.children.item(j).style.borderRight = "1px solid black";
-		if(j<row.children.length-1) {
-                    row.children.item(j+1).style.borderLeft = "1px solid black";
-		}
+                row.children.item(j).classList.add("borderRight");
+                //row.children.item(j).style.borderRight = "1px solid black";
+                //if(j<row.children.length-1) {
+                //    row.children.item(j+1).style.borderLeft = "1px solid black";
+                //}
+            }
+            if(j%10==1 && j < row.children.length-1 && j > 1) {
+                row.children.item(j).classList.add("borderLeft");
             }
         }
     }
@@ -565,24 +569,27 @@ function loadJSON(data) {
     
     //Adding vertical ruler div
     const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-    rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
+    //rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
+    rulerDiv.classList.add("vertRulerDiv");
     rulerRow.append(rulerDiv);
 
     for(i=1; i<=cols; i++)  {
         const tileDiv = tileTemplate.content.cloneNode(true).children[0];
-        tileDiv.setAttribute('style', "background-color: rgb(241, 241, 241);");
+        //tileDiv.setAttribute('style', "background-color: rgb(241, 241, 241);");
+        tileDiv.classList.add("horRulerRow");
         if(i%10 == 0) {
             tileDiv.children.item(0).innerText = i/10;
             tileDiv.children.item(0).setAttribute('style', "float: right;");
         }
-        if(i%10 == 1) {
+        if(i%10 == 1 && i > 1) {
             tileDiv.children.item(0).innerText = 0;
             tileDiv.children.item(0).setAttribute('style', "float: left;");
         }
         rulerRow.append(tileDiv);
     }
 
-    rulerRow.setAttribute('style', "position: sticky; top: 0")
+    rulerRow.classList.add("horRulerRow");
+    //rulerRow.setAttribute('style', "position: sticky; top: 0")
     tileContainer.append(rulerRow);
 
     for(j=1; j<=rows; j++) {
@@ -590,11 +597,12 @@ function loadJSON(data) {
 
         //Adding vertical ruler div
         const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-        rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
+        rulerDiv.classList.add("vertRulerDiv");
+        //rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
         if(j%10 == 0) {
             rulerDiv.children.item(0).innerText = j/10;
             
-        }if(j%10 == 1) {
+        }if(j%10 == 1 && j > 1) {
             rulerDiv.children.item(0).innerText = 0;
         }
         newRow.append(rulerDiv);
