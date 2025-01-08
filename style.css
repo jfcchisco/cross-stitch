@@ -174,3 +174,34 @@ table, th, td {
     border: 1px solid black;
     border-collapse: collapse;
 }
+
+.borderLeft {
+    border-left: 1px solid black;
+}
+
+.borderRight {
+    border-right: 1px solid black;
+}
+
+.borderTop {
+    border-top: 1px solid black;
+}
+
+.borderBottom {
+    border-bottom: 1px solid black;
+}
+
+.vertRulerDiv {
+    position: sticky;
+    left: 0;
+    background-color: rgb(241, 241, 241);
+}
+
+.horRulerRow {
+    background-color: rgb(241, 241, 241);
+}
+
+.horRulerRow {
+    position: sticky;
+    top: 0;
+}
