@@ -734,7 +734,7 @@ function paintClick(stitchCoord) {
         fillFlossUsage();
     }
 
-    updateColor(changes);
+    //updateColor(changes);
 }
 
 function preview(data) {
@@ -874,10 +874,12 @@ function tileClick(x, y, code, symbol) {
 
     if(paintFlag) {
         paintClick(obj);
+        updateColor(changes);
     }
 
     else if(bucketFlag) {
         bucketClick(obj);
+        updateColor(changes);
     }
 
     else if (highFlag) {
