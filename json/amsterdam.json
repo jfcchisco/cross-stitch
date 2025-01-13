@@ -46984,7 +46984,9 @@
 "properties":
 {"width":300,"height":214},
 "colors":
-[{"dmcCode":"554","dmcName":"Violet Light","R":219,"G":179,"B":203,"symbol":"0"},
+[
+{"dmcCode":"stitched","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"},
+{"dmcCode":"554","dmcName":"Violet Light","R":219,"G":179,"B":203,"symbol":"0"},
 {"dmcCode":"3865","dmcName":"Winter White","R":249,"G":247,"B":241,"symbol":"1"},
 {"dmcCode":"310","dmcName":"Black","R":0,"G":0,"B":0,"symbol":"2"},
 {"dmcCode":"796","dmcName":"Royal Blue Dark","R":17,"G":65,"B":109,"symbol":"3"},
