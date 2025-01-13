@@ -205,7 +205,6 @@ function drawHorizontalLines() {
             topRow.children.item(j).style.borderBottom = "2px solid black";
         }
     }
-
 }
 
 function drawVerticalLines() {
@@ -730,8 +729,8 @@ function paintClick(stitchCoord) {
                 "dmcCode": "stitched",
             },
         )
-        jsonObject = mergeChanges();
-        fillFlossUsage();
+        //jsonObject = mergeChanges();
+        //fillFlossUsage();
     }
 
     //updateColor(changes);
@@ -874,11 +873,15 @@ function tileClick(x, y, code, symbol) {
 
     if(paintFlag) {
         paintClick(obj);
+        jsonObject = mergeChanges();
+        fillFlossUsage();
         updateColor(changes);
     }
 
     else if(bucketFlag) {
         bucketClick(obj);
+        jsonObject = mergeChanges();
+        fillFlossUsage();
         updateColor(changes);
     }
 
