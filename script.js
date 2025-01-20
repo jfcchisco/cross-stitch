@@ -872,6 +872,9 @@ function tileClick(x, y, code, symbol) {
     }
 
     if(paintFlag) {
+	if(highFlag && highCode != code) {
+            return;
+        }
         paintClick(obj);
         jsonObject = mergeChanges();
         fillFlossUsage();
@@ -879,6 +882,9 @@ function tileClick(x, y, code, symbol) {
     }
 
     else if(bucketFlag) {
+	if(highFlag && highCode != code) {
+            return;
+        }
         bucketClick(obj);
         jsonObject = mergeChanges();
         fillFlossUsage();
