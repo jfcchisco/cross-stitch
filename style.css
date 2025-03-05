@@ -191,6 +191,10 @@ table, th, td {
     border-bottom: 1px solid black;
 }
 
+.horBorder {
+    border-bottom: 2px solid black;
+}
+
 .vertRulerDiv {
     position: sticky;
     left: 0;
@@ -204,4 +208,20 @@ table, th, td {
 .horRulerRow {
     position: sticky;
     top: 0;
+}
+
+.midRowTop {
+    border-bottom: 1px solid yellow;
+}
+
+.midRowBot {
+    border-top: 1px solid red;
+}
+
+.midColLeft {
+    border-right: 1px solid red;
+}
+
+.midColRight {
+    border-left: 1px solid yellow;
 }
