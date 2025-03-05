@@ -194,6 +194,7 @@ function convertStitchesToFile(data) {
 function drawGridLines() {
     drawHorizontalLines();
     drawVerticalLines();
+    drawMiddleLines();
 }
 
 function drawHorizontalLines() {
@@ -202,7 +203,8 @@ function drawHorizontalLines() {
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
         for(j = 0; j < topRow.children.length; j++) {
-            topRow.children.item(j).style.borderBottom = "2px solid black";
+            topRow.children.item(j).classList.add("horBorder");
+            //topRow.children.item(j).style.borderBottom = "2px solid black";
         }
     }
 }
@@ -223,6 +225,28 @@ function drawVerticalLines() {
                 row.children.item(j).classList.add("borderLeft");
             }
         }
+    }
+}
+
+function drawMiddleLines() {
+    // Draw horizontal middle line
+    let rows = document.getElementsByClassName("tile-container")[0];
+    let midRowIndex = Math.round(jsonObject.properties.height / 2)
+    let midRowTop = rows.children[midRowIndex];
+    let midRowBot = rows.children[midRowIndex + 1];
+    for(i = 0; i < midRowTop.children.length; i ++) {
+        midRowTop.children.item(i).classList.add("midRowTop");
+    }
+    for(i = 0; i < midRowBot.children.length; i ++) {
+        midRowBot.children.item(i).classList.add("midRowBot");
+    }
+    
+    // Draw vertical middle line
+    let midColIndex = Math.round(jsonObject.properties.width / 2)
+    for(i = 0; i < rows.children.length; i++) {
+        let curRow = rows.children.item(i);
+        curRow.children.item(midColIndex).classList.add("midColLeft");
+        curRow.children.item(midColIndex + 1).classList.add("midColRight");
     }
 }
 
