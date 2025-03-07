@@ -211,17 +211,17 @@ table, th, td {
 }
 
 .midRowTop {
-    border-bottom: 1px solid yellow;
+    border-bottom: 1px dashed black;
 }
 
 .midRowBot {
-    border-top: 1px solid red;
+    border-top: 1px dashed black;
 }
 
 .midColLeft {
-    border-right: 1px solid red;
+    border-right: 1px dashed black;
 }
 
 .midColRight {
-    border-left: 1px solid yellow;
+    border-left: 1px dashed black;
 }
