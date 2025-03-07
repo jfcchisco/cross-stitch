@@ -46986,9 +46986,9 @@
 "colors":
 [
 {"dmcCode":"stitched","dmcName":"STITCHED","R":0,"G":255,"B":0,"symbol":"×"},
-{"dmcCode":"554","dmcName":"Violet Light","R":219,"G":179,"B":203,"symbol":"0"},
+{"dmcCode":"554","dmcName":"Violet Light","R":219,"G":179,"B":203,"symbol":"W"},
 {"dmcCode":"3865","dmcName":"Winter White","R":249,"G":247,"B":241,"symbol":"1"},
-{"dmcCode":"310","dmcName":"Black","R":0,"G":0,"B":0,"symbol":"2"},
+{"dmcCode":"310","dmcName":"Black","R":0,"G":0,"B":0,"symbol":"0"},
 {"dmcCode":"796","dmcName":"Royal Blue Dark","R":17,"G":65,"B":109,"symbol":"3"},
 {"dmcCode":"3766","dmcName":"Peacock Blue Light","R":153,"G":207,"B":217,"symbol":"4"},
 {"dmcCode":"3750","dmcName":"Antique Blue Very Dark","R":56,"G":76,"B":94,"symbol":"5"},
@@ -47017,7 +47017,7 @@
 {"dmcCode":"371","dmcName":"Mustard","R":191,"G":166,"B":113,"symbol":"T"},
 {"dmcCode":"720","dmcName":"Orange Spice Dark","R":229,"G":92,"B":31,"symbol":"U"},
 {"dmcCode":"922","dmcName":"Copper Light","R":226,"G":115,"B":35,"symbol":"V"},
-{"dmcCode":"902","dmcName":"Garnet Very Dark","R":130,"G":38,"B":55,"symbol":"W"},
+{"dmcCode":"902","dmcName":"Garnet Very Dark","R":130,"G":38,"B":55,"symbol":"2"},
 {"dmcCode":"169","dmcName":"Pewter Light","R":132,"G":132,"B":132,"symbol":"X"},
 {"dmcCode":"503","dmcName":"Blue Green Medium","R":123,"G":172,"B":148,"symbol":"Y"},
 {"dmcCode":"550","dmcName":"Violet Very Dark","R":92,"G":24,"B":78,"symbol":"Z"},
