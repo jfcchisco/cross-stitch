@@ -77,9 +77,9 @@ function addChangesToJsonObject() {
                 tiles[i].removeAttribute('data-tile-orig-code');
                 let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
                 tiles[i].setAttribute('title', tileTitle);
-                console.log(stitch);
+                // console.log(stitch);
                 stitch.dmcCode = 'stitched';
-                console.log(stitch);
+                // console.log(stitch);
             }
         }
     })
