@@ -45,7 +45,7 @@
                 <img src="./img/preview.png" class="toolImage">
             </div>
         </div>
-        <div id="undoTool" class="toolback" onclick="undo()">
+        <div id="undoTool" class="toolback" onclick="newUndo()">
             <div title="Undo" class="tool">
                 <img src="./img/undo.png" class="toolImage">
             </div>
@@ -114,8 +114,8 @@
     </template>
 
     <template data-tile-template>
-        <div class="tile" data-tile-back>
-            <span class="tile-span" data-tile-code></span>
+        <div class="tile" data-tile-x data-tile-y data-tile-code>
+            <span class="tile-span"></span>
         </div>
     </template>
 
