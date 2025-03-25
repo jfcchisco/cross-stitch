@@ -34,12 +34,9 @@ let jsonFile = jsonFiles[currIndex];
 let jsonObject = {}; // resulting object after fetch
 let originalObject = {};
 
-let json2draw = {};
-
-let jsonColors = {}; // json containing color usage
-
 let changes = []; // after a paint event a change has to be added
-
+let colorArray = [];
+let changeCounter = 0;
 var downloadURL = null;
 
 window.onload = function() {
@@ -67,6 +64,28 @@ function loadNextFile() {
     })
 }
 
+function addChangesToJsonObject() {
+    let tiles = document.querySelectorAll('[data-tile-change]');
+
+    jsonObject.stitches.forEach(stitch => {
+        for(i=0; i<tiles.length; i++) {
+            let X = tiles[i].getAttribute('data-tile-x');
+            let Y = tiles[i].getAttribute('data-tile-y');
+            if(stitch.X == X && stitch.Y == Y) {
+                // After this the change will be undoable
+                tiles[i].removeAttribute('data-tile-change');
+                tiles[i].removeAttribute('data-tile-orig-code');
+                let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
+                tiles[i].setAttribute('title', tileTitle);
+                console.log(stitch);
+                stitch.dmcCode = 'stitched';
+                console.log(stitch);
+            }
+        }
+    })
+    return;
+}
+
 function bucket() {
     clearActiveTool();
     bucketFlag = !bucketFlag;
@@ -82,7 +101,7 @@ function bucket() {
     //clear other flags
     // highFlag = false;
     paintFlag = false;
-    updateColor(jsonObject.stitches);
+    //updateColor(jsonObject.stitches);
 }
 
 function bucketClick(stitchCoord) {
@@ -106,6 +125,32 @@ function bucketClick(stitchCoord) {
             paintClick(stitch);
         })
     }
+}
+
+function newBucketClick(obj, counter) {
+    let x = obj.getAttribute('data-tile-x');
+    let y = obj.getAttribute('data-tile-y');
+    let code = obj.getAttribute('data-tile-code');
+    let stitches2Paint = newGetNeighborStitches(Number(x), Number(y), code);
+    if(stitches2Paint.length > 20) {
+        let message = stitches2Paint.length + " stitches will be painted, are you sure?"
+        if(confirm(message)) {
+            stitches2Paint.forEach(stitch => {
+                let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
+                newPaintClick(tile, counter);
+            })
+        }
+        else {
+            return 0;
+        }
+    }
+    else {
+        stitches2Paint.forEach(stitch => {
+            let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
+            newPaintClick(tile, counter);
+        })
+    }
+    return(stitches2Paint.length);
 }
 
 function checkAndAddColor (colors, line) 
@@ -371,7 +416,7 @@ function fillFlossUsage() {
             colorFront.setAttribute('style', backColor)
             const colorTitle = color.code + " - " + color.name;
             colorFront.setAttribute('title', colorTitle);
-            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
+            const colorClick = `newSelectColor(\"${color.code}\", \"${color.symbol}\")`;
             colorFront.setAttribute('onclick', colorClick);
 
 	    // collection[i].classList.remove("activeColor")
@@ -393,12 +438,157 @@ function fillFlossUsage() {
     modalList.appendChild(table);
 }
 
+function newFillFlossUsage() {
+    //clear all elements of the modal
+    let modalList = document.getElementById("modalList");
+
+    //Clear table
+    while(modalList.lastElementChild) {
+        modalList.removeChild(modalList.lastElementChild);
+    }
+
+    // Clear color selectors
+    while(colorContainer.lastElementChild) {
+        colorContainer.removeChild(colorContainer.lastElementChild);
+    }
+    
+    //Count already stitched
+    let stitched = 0;
+    let toStitch = 0;
+    colorArray.forEach(obj => {
+        if(obj.code == "stitched") {
+            stitched = obj.count;
+        }
+        else if(obj.code != "empty") {
+            toStitch += obj.count;
+        }
+    })
+
+    toStitch += stitched;
+    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
+
+    //Sort for table 
+    colorArray.sort(function(a, b) {
+        if(a.count < b.count) return 1;
+        if(a.count > b.count) return -1;
+        return 0;
+    });
+
+    //Sort for table 
+    colorArray.sort(function(a, b) {
+        if(a.count < b.count) return 1;
+        if(a.count > b.count) return -1;
+        return 0;
+    });
+
+    //Fill properties
+    let par = document.getElementById("properties");
+    let hS = jsonObject.properties.height;
+    let wS = jsonObject.properties.width;
+    // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
+    let hCM = (hS * 0.185).toFixed(1);
+    let wCM = (wS * 0.185).toFixed(1);
+    par.innerHTML = hS + "h x " + wS + "w (" + hCM + "cm x " + wCM + "cm). " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
+
+    //Fill floss count
+    let flossCountPar = document.getElementById("flossCount");
+    flossCountPar.innerHTML = colorArray.length + " colors";
+
+    //Fill table
+    
+    //let table = document.getElementById("modalTable");
+    let table = document.createElement("table");
+    const headRow = document.createElement('tr');
+
+    let heads = ["Color", "Symbol", "Code", "Name", "Count"];
+    for (let i in heads) {
+        const headCell = document.createElement('th');
+        headCell.textContent = heads[i];
+        headRow.appendChild(headCell);
+    }
+
+    table.appendChild(headRow);
+
+    let newRow = document.createElement('tr');
+    let newCell = document.createElement('td');
+
+    colorArray.map(color =>  {
+        if(color.code != "empty") {
+            newRow = document.createElement('tr');
+
+            newCell = document.createElement('td');
+            //newCell.textContent = color.R + "," + color.G + "," + color.B;
+            let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+            newCell.setAttribute('style', backColor);
+            newRow.appendChild(newCell);
+
+            newCell = document.createElement('td');
+            newCell.textContent = color.symbol;
+            newCell.setAttribute('style', 'text-align: center');
+            newRow.appendChild(newCell);
+
+            newCell = document.createElement('td');
+            newCell.textContent = color.code;
+            newCell.setAttribute('style', 'text-align: right');
+            newRow.appendChild(newCell);
+
+            newCell = document.createElement('td');
+            newCell.textContent = color.name;
+            newRow.appendChild(newCell);
+
+            newCell = document.createElement('td');
+            newCell.textContent = color.count;
+            newCell.setAttribute('style', 'text-align: right');
+            newRow.appendChild(newCell);
+            table.appendChild(newRow);
+        }
+        
+        
+
+
+        // Fill color selectors
+        if(color.code!="empty") {
+            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
+            const colorBack = colorDiv.querySelector("[data-color-back]");
+            const colorFront = colorDiv.querySelector("[data-color]");
+            const colorId = colorDiv.querySelector("[data-color-id]");
+
+            colorId.textContent = color.symbol;
+            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
+            
+            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
+            colorFront.setAttribute('style', backColor)
+            const colorTitle = color.code + " - " + color.name;
+            colorFront.setAttribute('title', colorTitle);
+            const colorClick = `newSelectColor(\"${color.code}\", \"${color.symbol}\")`;
+            colorFront.setAttribute('onclick', colorClick);
+
+	    // collection[i].classList.remove("activeColor")
+	    // if(highFlag && color.code == highCode) {
+	    //     colorBack.classList.add('activeColor')
+	    // }
+
+            if(colorBack != null) {
+                colorBack.classList.add('holyS');
+            }
+            colorContainer.append(colorDiv);
+        }
+    })
+    
+    if (highFlag) {
+        newSelectColor(highCode, highSymbol);
+    }
+
+    modalList.appendChild(table);
+}
+
 function flossUsageClose() {
     let modal = document.getElementById("myModal");
     modal.style.display = "none";
 }
 
 function flossUsageOpen() {
+    newFillFlossUsage();
     let modal = document.getElementById("myModal");
     modal.style.display = "block";
 }
@@ -411,6 +601,17 @@ function getDMCName(code) {
         }
     })
     return dmcName;
+}
+
+function getDMCSymbol(code) {
+    let dmcSymbol = "Unknown";
+    jsonObject.colors.forEach(obj => {
+        //console.log(obj);
+        if(obj.dmcCode === code) {
+            dmcSymbol = obj.dmcSymbol;
+        }
+    })
+    return dmcSymbol;
 }
 
 function getDMCValuesFromCode(code) {
@@ -481,20 +682,78 @@ function getNeighborStitches(X, Y) {
     return foundStitches;
 }
 
+function newGetNeighborStitches(X, Y, code) {
+    //array of coordinates to return for painting    
+    let foundStitches = [];
+    //array to iterate last element, get new stitches that are not already in found and pop it
+    let newStitches = [];
+    let color2Paint = code;
+
+    if(color2Paint == 'stitched' || color2Paint == '0') {
+        return foundStitches;
+    }
+    
+    //add the clicked coordinates
+    newStitches.push(
+        {"X": X, 
+        "Y": Y
+    });
+
+    foundStitches.push(
+        {"X": X, 
+        "Y": Y
+    });
+    
+
+    // check four stitches that share an edge with the clicked
+    while(newStitches.length > 0) {
+        //check last element of array
+        let stitch2Test = newStitches[newStitches.length-1];
+        //and remove it
+        newStitches.pop();
+
+        // check 4 edges of the stitch to test
+        let edges = [
+            {X:stitch2Test.X, Y:stitch2Test.Y-1},
+            {X:stitch2Test.X, Y:stitch2Test.Y+1},
+            {X:stitch2Test.X-1, Y:stitch2Test.Y},
+            {X:stitch2Test.X+1, Y:stitch2Test.Y}
+        ];
+
+        edges.forEach(edge => {
+            //console.log(edge.X, edge.Y);
+            //let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
+            //console.log(tile);
+
+            if(getStitchColor(edge) == color2Paint) {
+                if(!IsCoordAlreadyThere(edge, foundStitches)) {
+                    newStitches.push(edge);
+                    foundStitches.push(edge);
+                }
+            }
+        });
+
+
+
+        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y-1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
+        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y+1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
+        //if(getStitchColor({X:stitch2Test.X-1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
+        //if(getStitchColor({X:stitch2Test.X+1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
+
+    }
+    // console.log(foundStitches);
+    return foundStitches;
+}
+
 function getStitchColor(stitchCoord) {
     let X = stitchCoord.X;
     let Y = stitchCoord.Y;
-
-    let dmcCode = -1
-
-    stitches = jsonObject.stitches.map(stitch => {
-        if(stitch.X == X && stitch.Y == Y) {
-            dmcCode = stitch.dmcCode;
-        }
-    });
-
-    return dmcCode;
-    
+    let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
+    if(tile != null) {
+        return tile.getAttribute('data-tile-code');
+    }
+    return -1
+ 
 }
 
 function getStitched() {
@@ -517,7 +776,8 @@ function highContrast() {
         document.getElementById("contrastTool").classList.remove("activeTool");
     }
 
-    updateColor(jsonObject.stitches);
+    //updateColor(jsonObject.stitches);
+    updateTileColor();
 }
 
 function highlight() {
@@ -531,7 +791,8 @@ function highlight() {
     paintFlag = false;
     bucketFlag = false;
 
-    updateColor(jsonObject.stitches);
+    //updateColor(jsonObject.stitches);
+    updateTileColor();
 }
 
 function IsCoordAlreadyThere (stitchCoord, array2Test) {
@@ -724,7 +985,7 @@ function paint() {
     // highFlag = false;
     bucketFlag = false;
 
-    updateColor(jsonObject.stitches);
+    //updateColor(jsonObject.stitches);
 }
 
 function paintClick(stitchCoord) {
@@ -760,6 +1021,22 @@ function paintClick(stitchCoord) {
     //updateColor(changes);
 }
 
+function newPaintClick(tile, counter) {
+    let origCode = tile.getAttribute('data-tile-code');
+    tile.setAttribute('data-tile-code', 'stitched');
+    tile.setAttribute('data-tile-orig-code', origCode);
+    tile.setAttribute('data-tile-r', 0);
+    tile.setAttribute('data-tile-g', 255);
+    tile.setAttribute('data-tile-b', 0);
+    tile.setAttribute('data-tile-change', counter);
+
+    tile.style.backgroundColor = "rgba(0, 255, 0, 1)"
+    tile.children.item(0).style.color = 'white';
+    //console.log(colorArray);
+    tile.children.item(0).innerText = '×';
+
+}
+
 function preview(data) {
     let canvas = document.getElementById("canvas")
     let ctx = canvas.getContext('2d')
@@ -783,9 +1060,9 @@ function preview(data) {
 
     for(i = 0; i < data.length; i++) {
         let tileValues = data[i];
-        if(i < 10) {
-            console.log(tileValues);
-        }
+        // if(i < 10) {
+        //    console.log(tileValues);
+        //}
         //Adding offset due to ruler
         let row = tileContainer.children.item(tileValues.Y + 1);
         let tile = row.children.item(tileValues.X + 1)
@@ -815,6 +1092,9 @@ function previewOpen() {
 
 function save() {
     //mergeChanges();
+    addChangesToJsonObject();
+    fillFlossUsage();
+
     var text2write = JSON.stringify(convertStitchesToFile(jsonObject));
     
     var element = document.createElement('a');
@@ -874,6 +1154,29 @@ function selectColor(color, symbol) {
     
 }
 
+function newSelectColor(color, symbol) {
+    const collection = document.getElementsByClassName("colorback");
+    for (let i = 0; i < collection.length; i++) {
+        collection[i].classList.remove("activeColor");
+    }
+
+    for (let i = 0; i < collection.length; i++) {
+        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
+            collection[i].classList.add("activeColor");
+        }
+    }
+
+    highCode = color;
+    highSymbol = symbol;
+    if(highFlag) {
+        updateTileColor();
+    }
+
+
+    footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
+     
+}
+
 function setHeight(newHeight) {
     const collection = document.getElementsByClassName("tile");
     let newHeightStyle = newHeight + "px";
@@ -896,7 +1199,7 @@ function tileClick(x, y, code, symbol) {
     }
 
     if(paintFlag) {
-	if(highFlag && highCode != code) {
+	    if(highFlag && highCode != code) {
             return;
         }
         paintClick(obj);
@@ -924,11 +1227,138 @@ function tileClick(x, y, code, symbol) {
     footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
 } 
 
+function newTileClick(obj) {
+    x = Number(obj.getAttribute('data-tile-x'));
+    y = Number(obj.getAttribute('data-tile-y'));
+    code = obj.getAttribute('data-tile-code');
+    symbol = getDMCSymbol(code);
+
+    if(paintFlag) {
+	    if(highFlag && highCode != code) {
+            return
+        }
+        changeCounter++;
+        newPaintClick(obj, changeCounter);
+        colorArray = updateColorAfterPaint(colorArray, code, 1);
+        
+    }
+
+    else if(bucketFlag) {
+	    if(highFlag && highCode != code) {
+            return;
+        }
+        changeCounter++;
+        let total = newBucketClick(obj, changeCounter);
+        colorArray = updateColorAfterPaint(colorArray, code, total);
+    }
+
+    else if (highFlag) {
+        newSelectColor(code, symbol);
+
+    }
+    let tileX = x + 1;
+    let tileY = y + 1;
+    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
+
+
+}
+
 function undo() {
     changes.pop();
     jsonObject = mergeChanges();
     fillFlossUsage();
     updateColor(jsonObject.stitches);
+}
+
+function newUndo() {
+    if(changeCounter == 0) {
+        return;
+    }
+    let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(changeCounter)}]`);
+    // console.log(tiles);
+    tiles.forEach(tile => {
+        let origCode = tile.getAttribute('data-tile-orig-code');
+        let origColor = getDMCValuesFromCode(origCode);
+        let R = origColor.R;
+        let G = origColor.G;
+        let B = origColor.B;
+
+        tile.children.item(0).innerText = origColor.symbol;
+        tile.removeAttribute('data-tile-change');
+        tile.setAttribute('data-tile-code', origColor.dmcCode);
+        tile.setAttribute('data-tile-r', origColor.R);
+        tile.setAttribute('data-tile-g', origColor.G);
+        tile.setAttribute('data-tile-b', origColor.B);
+        
+        let code = origCode;
+        let alpha = 1;
+        let spanColor = 'black';
+        let color = 'white';
+        
+        //Check for high contrast
+        if(contrastFlag) {
+            if(code == "stitched") {
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+            }
+            
+            else {
+                if(highFlag) {
+                    if(highCode == code) {
+                        spanColor = 'white';
+                        color = 'black';
+                    }
+                    else {
+                        alpha = 0.25;
+                        spanColor = 'silver';
+                    }
+                }
+            }
+            
+            
+
+        }
+
+
+        else {
+            spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+        
+            if(highFlag && highCode != code) {
+                alpha = 0.25;
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
+            }
+            if(code == "stitched") {
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+                alpha = 1;
+            }
+
+            color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
+        }
+        //tile.setAttribute('style', color)
+
+        // Update stitch count and restore original count
+        let length = colorArray.length;
+        
+        for (i = 0; i < length; i ++) {
+            
+            if(origCode == colorArray[i].code) {
+                colorArray[i].count = colorArray[i].count + 1;
+            }
+
+            if(colorArray[i].code == 'stitched') {
+                colorArray[i].count = colorArray[i].count - 1;
+            }
+        }
+        
+        tile.children.item(0).style.color = spanColor;
+        tile.style.backgroundColor = color;
+        
+        // console.log(origColor);
+        // console.log(tile.getAttribute('data-tile-change'));
+    })
+    changeCounter--;
+    footNote.innerText = "Stitched: " + getStitched(); 
 }
 
 function updateColor(stitches) {
@@ -988,7 +1418,7 @@ function updateColor(stitches) {
 	    if(code == "stitched") {
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
                 color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-		alpha = 1;
+		        alpha = 1;
             }
 
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
@@ -1002,8 +1432,8 @@ function updateColor(stitches) {
         let tileTitle = tileValues.dmcCode + " - " + dmcName + " - X: " + X + " - Y: " + Y
         tile.setAttribute('title', tileTitle)
 
-        let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", \"" + tileValues.dmcCode + "\", \"" + symbol + "\")";
-        
+        //let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", \"" + tileValues.dmcCode + "\", \"" + symbol + "\")";
+        let tileClick = "newTileClick(this)"
         if(code != "empty") {
             tile.setAttribute('onclick', tileClick);
         }
@@ -1013,7 +1443,111 @@ function updateColor(stitches) {
 
         tile.children.item(0).style.color = spanColor;
         footNote.innerText = "Stitched: " + getStitched();  
+
+        // Add data attributes
+        tile.setAttribute('data-tile-x', tileValues.X);
+        tile.setAttribute('data-tile-y', tileValues.Y);
+        tile.setAttribute('data-tile-code', tileValues.dmcCode);
+        tile.setAttribute('data-tile-r', R);
+        tile.setAttribute('data-tile-g', G);
+        tile.setAttribute('data-tile-b', B);
+
     }
+}
+
+function updateColorAfterPaint(colors, origCode, total) {
+    let length = colors.length;
+    let found = false;
+    
+    for (i = 0; i < length; i ++) {
+        
+        if(origCode == colors[i].code) {
+            colors[i].count = colors[i].count - total;
+        }
+
+        if(colors[i].code == 'stitched') {
+            found = true;
+            colors[i].count = colors[i].count + total;
+        }
+    }
+
+    if(!found) {
+        colors.push( { 
+            "code": 'stitched',
+            "name": 'STITCHED',
+            "R": 0,
+            "G": 255,
+            "B": 0,
+            "symbol": "×",
+            "count": total
+        } );
+    }
+    return colors;
+
+}
+
+
+function updateTileColor() {
+    for(i = 1; i < tileContainer.children.length; i++) {
+        let row = tileContainer.children[i];
+        for(j = 1; j < row.children.length; j++) {
+            let tile = row.children[j];
+            //console.log(tile.getAttribute('data-tile-code'));
+            let code = tile.getAttribute('data-tile-code');
+            let R = tile.getAttribute('data-tile-r');
+            let G = tile.getAttribute('data-tile-g');
+            let B = tile.getAttribute('data-tile-b');
+            let alpha = 1;
+            let spanColor = 'black';
+            let color = 'white';
+            
+            //Check for high contrast
+            if(contrastFlag) {
+                if(code == "stitched") {
+                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+                }
+                
+                else {
+                    if(highFlag) {
+                        if(highCode == code) {
+                            spanColor = 'white';
+                            color = 'black';
+                        }
+                        else {
+                            alpha = 0.25;
+                            spanColor = 'silver';
+                        }
+                    }
+                }
+                
+                
+
+            }
+
+
+            else {
+                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+            
+                if(highFlag && highCode != code) {
+                    alpha = 0.25;
+                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
+                }
+                if(code == "stitched") {
+                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
+                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+                    alpha = 1;
+                }
+
+                color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
+            }
+            //tile.setAttribute('style', color)
+            
+            tile.children.item(0).style.color = spanColor;
+            tile.style.backgroundColor = color;
+        }
+    }
+
 }
 
 function zoomIn() {
@@ -1051,6 +1585,8 @@ window.onclick = function(event) {
         modal.style.display = "none";
     }
 }
+
+
 
 window.addEventListener('resize', function(event) {
     
