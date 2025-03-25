@@ -77,9 +77,9 @@ function addChangesToJsonObject() {
                 tiles[i].removeAttribute('data-tile-orig-code');
                 let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
                 tiles[i].setAttribute('title', tileTitle);
-                // console.log(stitch);
+                console.log(stitch);
                 stitch.dmcCode = 'stitched';
-                // console.log(stitch);
+                console.log(stitch);
             }
         }
     })
@@ -132,13 +132,16 @@ function newBucketClick(obj, counter) {
     let y = obj.getAttribute('data-tile-y');
     let code = obj.getAttribute('data-tile-code');
     let stitches2Paint = newGetNeighborStitches(Number(x), Number(y), code);
-    if(stitches2Paint.length > 100) {
+    if(stitches2Paint.length > 20) {
         let message = stitches2Paint.length + " stitches will be painted, are you sure?"
         if(confirm(message)) {
             stitches2Paint.forEach(stitch => {
                 let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
                 newPaintClick(tile, counter);
             })
+        }
+        else {
+            return 0;
         }
     }
     else {
@@ -1333,6 +1336,20 @@ function newUndo() {
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
         //tile.setAttribute('style', color)
+
+        // Update stitch count and restore original count
+        let length = colorArray.length;
+        
+        for (i = 0; i < length; i ++) {
+            
+            if(origCode == colorArray[i].code) {
+                colorArray[i].count = colorArray[i].count + 1;
+            }
+
+            if(colorArray[i].code == 'stitched') {
+                colorArray[i].count = colorArray[i].count - 1;
+            }
+        }
         
         tile.children.item(0).style.color = spanColor;
         tile.style.backgroundColor = color;
@@ -1341,6 +1358,7 @@ function newUndo() {
         // console.log(tile.getAttribute('data-tile-change'));
     })
     changeCounter--;
+    footNote.innerText = "Stitched: " + getStitched(); 
 }
 
 function updateColor(stitches) {
