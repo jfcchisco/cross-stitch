@@ -112,7 +112,7 @@ function bucketClick(stitchCoord) {
     let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
     console.log(stitches2Paint.length);
 
-    if(stitches2Paint.length > 20) {
+    if(stitches2Paint.length > 100) {
         let message = stitches2Paint.length + " stitches will be painted, are you sure?"
         if(confirm(message)) {
             stitches2Paint.forEach(stitch => {
