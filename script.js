@@ -1572,7 +1572,7 @@ function zoomReset() {
     zoomResetFlag = !zoomResetFlag;
 
     if(zoomResetFlag) {
-        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length));
+        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length) - 1);
     }
     else {
         setHeight(DEFAULT_HEIGHT);
