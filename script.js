@@ -132,7 +132,7 @@ function newBucketClick(obj, counter) {
     let y = obj.getAttribute('data-tile-y');
     let code = obj.getAttribute('data-tile-code');
     let stitches2Paint = newGetNeighborStitches(Number(x), Number(y), code);
-    if(stitches2Paint.length > 20) {
+    if(stitches2Paint.length > 100) {
         let message = stitches2Paint.length + " stitches will be painted, are you sure?"
         if(confirm(message)) {
             stitches2Paint.forEach(stitch => {
