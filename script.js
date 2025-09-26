@@ -104,40 +104,17 @@ function bucket() {
     //updateColor(jsonObject.stitches);
 }
 
-function bucketClick(stitchCoord) {
-    //if(highFlag && stitchCoord.code != highCode) {
-    //    return;
-    //}
-
-    let stitches2Paint = getNeighborStitches(stitchCoord.X, stitchCoord.Y);
-    console.log(stitches2Paint.length);
-
-    if(stitches2Paint.length > 100) {
-        let message = stitches2Paint.length + " stitches will be painted, are you sure?"
-        if(confirm(message)) {
-            stitches2Paint.forEach(stitch => {
-                paintClick(stitch);
-            })
-        }
-    }
-    else {
-        stitches2Paint.forEach(stitch => {
-            paintClick(stitch);
-        })
-    }
-}
-
-function newBucketClick(obj, counter) {
+function bucketClick(obj, counter) {
     let x = obj.getAttribute('data-tile-x');
     let y = obj.getAttribute('data-tile-y');
     let code = obj.getAttribute('data-tile-code');
-    let stitches2Paint = newGetNeighborStitches(Number(x), Number(y), code);
+    let stitches2Paint = getNeighborStitches(Number(x), Number(y), code);
     if(stitches2Paint.length > 100) {
         let message = stitches2Paint.length + " stitches will be painted, are you sure?"
         if(confirm(message)) {
             stitches2Paint.forEach(stitch => {
                 let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
-                newPaintClick(tile, counter);
+                paintClick(tile, counter);
             })
         }
         else {
@@ -147,7 +124,7 @@ function newBucketClick(obj, counter) {
     else {
         stitches2Paint.forEach(stitch => {
             let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
-            newPaintClick(tile, counter);
+            paintClick(tile, counter);
         })
     }
     return(stitches2Paint.length);
@@ -309,149 +286,6 @@ function fillFlossUsage() {
         colorContainer.removeChild(colorContainer.lastElementChild);
     }
     
-    //Refresh color list
-    colorArray = [];
-    jsonObject.stitches.forEach(obj => {
-        colorArray = checkAndAddColor(colorArray, obj);
-    })
-
-    //Count already stitched
-    let stitched = 0;
-    let toStitch = 0;
-    colorArray.forEach(obj => {
-        if(obj.code == "stitched") {
-            stitched = obj.count;
-        }
-        else if(obj.code != "empty") {
-            toStitch += obj.count;
-        }
-    })
-
-    toStitch += stitched;
-    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
-
-    //Sort for table 
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-
-    //Fill properties
-    let par = document.getElementById("properties");
-    let hS = jsonObject.stitches[Object.keys(jsonObject.stitches).length-1].Y + 1;
-    let wS = jsonObject.stitches[Object.keys(jsonObject.stitches).length-1].X + 1;
-    // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
-    let hCM = (hS * 0.185).toFixed(1);
-    let wCM = (wS * 0.185).toFixed(1);
-    par.innerHTML = hS + "h x " + wS + "w (" + hCM + "cm x " + wCM + "cm). " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
-
-    //Fill floss count
-    let flossCountPar = document.getElementById("flossCount");
-    flossCountPar.innerHTML = colorArray.length + " colors";
-
-    //Fill table
-    
-    //let table = document.getElementById("modalTable");
-    let table = document.createElement("table");
-    const headRow = document.createElement('tr');
-
-    let heads = ["Color", "Symbol", "Code", "Name", "Count"];
-    for (let i in heads) {
-        const headCell = document.createElement('th');
-        headCell.textContent = heads[i];
-        headRow.appendChild(headCell);
-    }
-
-    table.appendChild(headRow);
-
-    let newRow = document.createElement('tr');
-    let newCell = document.createElement('td');
-
-    colors = colorArray.map(color =>  {
-        if(color.code != "empty") {
-            newRow = document.createElement('tr');
-
-            newCell = document.createElement('td');
-            //newCell.textContent = color.R + "," + color.G + "," + color.B;
-            let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            newCell.setAttribute('style', backColor);
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.symbol;
-            newCell.setAttribute('style', 'text-align: center');
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.code;
-            newCell.setAttribute('style', 'text-align: right');
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.name;
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.count;
-            newCell.setAttribute('style', 'text-align: right');
-            newRow.appendChild(newCell);
-            table.appendChild(newRow);
-        }
-        
-        
-
-
-        // Fill color selectors
-        if(color.code!="empty") {
-            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
-            const colorBack = colorDiv.querySelector("[data-color-back]");
-            const colorFront = colorDiv.querySelector("[data-color]");
-            const colorId = colorDiv.querySelector("[data-color-id]");
-
-            colorId.textContent = color.symbol;
-            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
-            
-            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            colorFront.setAttribute('style', backColor)
-            const colorTitle = color.code + " - " + color.name;
-            colorFront.setAttribute('title', colorTitle);
-            const colorClick = `newSelectColor(\"${color.code}\", \"${color.symbol}\")`;
-            colorFront.setAttribute('onclick', colorClick);
-
-	    // collection[i].classList.remove("activeColor")
-	    // if(highFlag && color.code == highCode) {
-	    //     colorBack.classList.add('activeColor')
-	    // }
-
-            if(colorBack != null) {
-                colorBack.classList.add('holyS');
-            }
-            colorContainer.append(colorDiv);
-        }
-    })
-    
-    if (highFlag) {
-        selectColor(highCode, highSymbol);
-    }
-
-    modalList.appendChild(table);
-}
-
-function newFillFlossUsage() {
-    //clear all elements of the modal
-    let modalList = document.getElementById("modalList");
-
-    //Clear table
-    while(modalList.lastElementChild) {
-        modalList.removeChild(modalList.lastElementChild);
-    }
-
-    // Clear color selectors
-    while(colorContainer.lastElementChild) {
-        colorContainer.removeChild(colorContainer.lastElementChild);
-    }
-    
     //Count already stitched
     let stitched = 0;
     let toStitch = 0;
@@ -560,7 +394,7 @@ function newFillFlossUsage() {
             colorFront.setAttribute('style', backColor)
             const colorTitle = color.code + " - " + color.name;
             colorFront.setAttribute('title', colorTitle);
-            const colorClick = `newSelectColor(\"${color.code}\", \"${color.symbol}\")`;
+            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
             colorFront.setAttribute('onclick', colorClick);
 
 	    // collection[i].classList.remove("activeColor")
@@ -576,7 +410,7 @@ function newFillFlossUsage() {
     })
     
     if (highFlag) {
-        newSelectColor(highCode, highSymbol);
+        selectColor(highCode, highSymbol);
     }
 
     modalList.appendChild(table);
@@ -588,7 +422,7 @@ function flossUsageClose() {
 }
 
 function flossUsageOpen() {
-    newFillFlossUsage();
+    fillFlossUsage();
     let modal = document.getElementById("myModal");
     modal.style.display = "block";
 }
@@ -624,65 +458,7 @@ function getDMCValuesFromCode(code) {
     return color2return;
 }
 
-function getNeighborStitches(X, Y) {
-    //array of coordinates to return for painting    
-    let foundStitches = [];
-    //array to iterate last element, get new stitches that are not already in found and pop it
-    let newStitches = [];
-
-    let color2Paint = getStitchColor({X:X,Y:Y});
-    if(color2Paint == 'stitched' || color2Paint == '0') {
-        return foundStitches;
-    }
-    
-    //add the clicked coordinates
-    newStitches.push(
-        {"X": X, 
-        "Y": Y
-    });
-
-    foundStitches.push(
-        {"X": X, 
-        "Y": Y
-    });
-    
-
-    // check four stitches that share an edge with the clicked
-    while(newStitches.length > 0) {
-        //check last element of array
-        let stitch2Test = newStitches[newStitches.length-1];
-        //and remove it
-        newStitches.pop();
-
-        // check 4 edges of the stitch to test
-        let edges = [
-            {X:stitch2Test.X, Y:stitch2Test.Y-1},
-            {X:stitch2Test.X, Y:stitch2Test.Y+1},
-            {X:stitch2Test.X-1, Y:stitch2Test.Y},
-            {X:stitch2Test.X+1, Y:stitch2Test.Y}
-        ];
-
-        edges.forEach(edge => {
-            if(getStitchColor(edge) == color2Paint) {
-                if(!IsCoordAlreadyThere(edge, foundStitches)) {
-                    newStitches.push(edge);
-                    foundStitches.push(edge);
-                }
-            }
-        });
-
-
-
-        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y-1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y+1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X-1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X+1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-
-    }
-    return foundStitches;
-}
-
-function newGetNeighborStitches(X, Y, code) {
+function getNeighborStitches(X, Y, code) {
     //array of coordinates to return for painting    
     let foundStitches = [];
     //array to iterate last element, get new stitches that are not already in found and pop it
@@ -732,16 +508,7 @@ function newGetNeighborStitches(X, Y, code) {
                 }
             }
         });
-
-
-
-        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y-1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X, Y:stitch2Test.Y+1}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X-1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-        //if(getStitchColor({X:stitch2Test.X+1, Y:stitch2Test.Y}) == color2Paint) {if(!IsCoordAlreadyThere(stitch2Test, foundStitches)) { newStitches.push(stitch2Test); foundStitches.push(stitch2Test) }}
-
     }
-    // console.log(foundStitches);
     return foundStitches;
 }
 
@@ -988,40 +755,7 @@ function paint() {
     //updateColor(jsonObject.stitches);
 }
 
-function paintClick(stitchCoord) {
-    //if(highFlag && stitchCoord.code != highCode) {
-    //    return;
-    //}
-
-    let alreadyStitched = false;
-
-    if(stitchCoord.X < 0 || stitchCoord.Y < 0 || getStitchColor(stitchCoord) == 0) {
-        return;
-    }
-
-    for(let i = 0; i < changes.length; i++) {
-        if(changes[i].X == stitchCoord.X && changes[i].Y == stitchCoord.Y) {
-            alreadyStitched = true;
-            
-        }
-    }
-    
-    if(!alreadyStitched && stitchCoord.X >= 0 && stitchCoord.Y >= 0) {
-        changes.push(
-            {
-                "X": stitchCoord.X,
-                "Y": stitchCoord.Y,
-                "dmcCode": "stitched",
-            },
-        )
-        //jsonObject = mergeChanges();
-        //fillFlossUsage();
-    }
-
-    //updateColor(changes);
-}
-
-function newPaintClick(tile, counter) {
+function paintClick(tile, counter) {
     let origCode = tile.getAttribute('data-tile-code');
     tile.setAttribute('data-tile-code', 'stitched');
     tile.setAttribute('data-tile-orig-code', origCode);
@@ -1146,29 +880,6 @@ function selectColor(color, symbol) {
     highCode = color;
     highSymbol = symbol;
     if(highFlag) {
-        updateColor(jsonObject.stitches);
-    }
-
-
-    footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
-    
-}
-
-function newSelectColor(color, symbol) {
-    const collection = document.getElementsByClassName("colorback");
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].classList.remove("activeColor");
-    }
-
-    for (let i = 0; i < collection.length; i++) {
-        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
-            collection[i].classList.add("activeColor");
-        }
-    }
-
-    highCode = color;
-    highSymbol = symbol;
-    if(highFlag) {
         updateTileColor();
     }
 
@@ -1190,44 +901,7 @@ function setHeight(newHeight) {
 
 }
 
-function tileClick(x, y, code, symbol) {
-    var obj = {
-        X: x,
-        Y: y,
-        code: code,
-        symbol : symbol
-    }
-
-    if(paintFlag) {
-	    if(highFlag && highCode != code) {
-            return;
-        }
-        paintClick(obj);
-        jsonObject = mergeChanges();
-        fillFlossUsage();
-        updateColor(changes);
-    }
-
-    else if(bucketFlag) {
-	if(highFlag && highCode != code) {
-            return;
-        }
-        bucketClick(obj);
-        jsonObject = mergeChanges();
-        fillFlossUsage();
-        updateColor(changes);
-    }
-
-    else if (highFlag) {
-        selectColor(obj.code, obj.symbol);
-
-    }
-    let tileX = x + 1;
-    let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
-} 
-
-function newTileClick(obj) {
+function tileClick(obj) {
     x = Number(obj.getAttribute('data-tile-x'));
     y = Number(obj.getAttribute('data-tile-y'));
     code = obj.getAttribute('data-tile-code');
@@ -1238,7 +912,7 @@ function newTileClick(obj) {
             return
         }
         changeCounter++;
-        newPaintClick(obj, changeCounter);
+        paintClick(obj, changeCounter);
         colorArray = updateColorAfterPaint(colorArray, code, 1);
         
     }
@@ -1248,12 +922,12 @@ function newTileClick(obj) {
             return;
         }
         changeCounter++;
-        let total = newBucketClick(obj, changeCounter);
+        let total = bucketClick(obj, changeCounter);
         colorArray = updateColorAfterPaint(colorArray, code, total);
     }
 
     else if (highFlag) {
-        newSelectColor(code, symbol);
+        selectColor(code, symbol);
 
     }
     let tileX = x + 1;
@@ -1264,13 +938,6 @@ function newTileClick(obj) {
 }
 
 function undo() {
-    changes.pop();
-    jsonObject = mergeChanges();
-    fillFlossUsage();
-    updateColor(jsonObject.stitches);
-}
-
-function newUndo() {
     if(changeCounter == 0) {
         return;
     }
@@ -1432,8 +1099,7 @@ function updateColor(stitches) {
         let tileTitle = tileValues.dmcCode + " - " + dmcName + " - X: " + X + " - Y: " + Y
         tile.setAttribute('title', tileTitle)
 
-        //let tileClick = "tileClick(" + tileValues.X + ", " + tileValues.Y + ", \"" + tileValues.dmcCode + "\", \"" + symbol + "\")";
-        let tileClick = "newTileClick(this)"
+        let tileClick = "tileClick(this)"
         if(code != "empty") {
             tile.setAttribute('onclick', tileClick);
         }
