@@ -23,7 +23,7 @@
 	
 	"stitches":
 	[
-	{"X":53,"Y":0,"dmcCode":"empty"},
+		{"X":53,"Y":0,"dmcCode":"empty"},
 		{"X":76,"Y":0,"dmcCode":"3325"},
 		{"X":49,"Y":1,"dmcCode":"empty"},
 		{"X":79,"Y":1,"dmcCode":"3325"},
