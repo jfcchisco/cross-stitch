@@ -170,6 +170,29 @@ function clearActiveTool() {
 function convertFileToStitches(data) {
     let dataOut = {};
     let newStitches = [];
+
+    let stitches = data.stitches.split(",");
+    let lastID = 0;
+    //console.log(stitches);
+    
+    for (let index in stitches) {
+        let id = parseInt(stitches[index].split("-")[0]);
+        let code = stitches[index].split("-")[1];
+        //console.log(stitches[index], id, code);
+        while(lastID <= id) {
+            let x = lastID % data.properties.width;
+            let y = Math.floor(lastID / data.properties.width);
+            newStitches.push({"X":x,"Y":y,"dmcCode":code});
+            lastID += 1;
+        }
+
+    }
+
+
+
+
+/*
+
     // Change in json file format, this converts stitches to previous format
     let stitchNumber = 0;
     for(let y = 0; y < data.properties.height; y++) {
@@ -185,7 +208,7 @@ function convertFileToStitches(data) {
             newStitches.push({"X":x,"Y":y,"dmcCode":data.stitches[stitchNumber].dmcCode});
         }
     }
-    
+*/
     dataOut.stitches = newStitches;
     dataOut.properties = data.properties;
     dataOut.colors = data.colors;
@@ -195,15 +218,20 @@ function convertFileToStitches(data) {
 
 function convertStitchesToFile(data) {
     let dataOut = {};
-    let newStitches = [];
+    let newStitches = "";
+    let id = "";
+    let code = "";
     for (const [index, stitch] of data.stitches.entries()) {
+        code = stitch.dmcCode;
+        id = stitch.Y * data.properties.width + stitch.X;
+        console.log(id);
         if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
             //Last stitch
-            newStitches.push(stitch);
+            newStitches = newStitches.concat(id, "-", code);
             continue;
         }
         else if(stitch.dmcCode != data.stitches[index + 1].dmcCode) {
-            newStitches.push(stitch);
+            newStitches = newStitches.concat(id, "-", code, ",");
         }
     }
 
