@@ -225,3 +225,20 @@ table, th, td {
 .midColRight {
     border-left: 1px dashed black;
 }
+
+.pathButtons {
+    border: 2px solid gray;
+    border-radius: 3px;
+}
+
+.pathButton {
+    background-color: lightgray;
+    border: 1px solid gray;
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin: 5px;
+    cursor: pointer;
+    user-select: none;
+    width: 90px;
+    text-align: center;
+}

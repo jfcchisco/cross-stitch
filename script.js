@@ -853,16 +853,20 @@ function preview(data) {
         }
     }
 
-    let createPathButton = document.getElementById("createPath");
-    createPathButton.style.display = "none";
+    let createPathDiv = document.getElementsByClassName("pathButtons")[0];
+    createPathDiv.style.display = "none";
     if(highFlag && highCode != 0) {
-        createPathButton.style.display = "block";
+        createPathDiv.style.display = "block";
     }
 }
 
 function previewPath(type) {
     // This function should be called only when there is already a created canvas
     // with the highlighted color and highlight flag activated
+    const thresholdInput = document.getElementById('pathInput');
+    const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
+    //console.log('Threshold value:', threshold);
+    
     let highStitches = getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
     console.log(highStitches);
@@ -920,7 +924,13 @@ function previewPath(type) {
     }
 
     let clusterSequence = [];
-    let nextCluster = 1;
+    let nextCluster = 0;
+    if(type == 0) {
+        nextCluster = clusterNumbers[0];
+    }
+    else if(type == 1) {
+        nextCluster = clusterNumbers[Math.floor(Math.random() * clusterNumbers.length)];
+    }
     let closestCluster = 0;
     while(clusterNumbers.length > 0) {
         let dist2Next = [nextCluster, 0, Infinity, [0,0], [0,0]];
@@ -933,18 +943,67 @@ function previewPath(type) {
 
             }
         }
-        clusterSequence.push(dist2Next);
-        if(clusterSequence.length == 1) {
-            let index = clusterNumbers.indexOf(nextCluster);
+
+        if(dist2Next[2] <= threshold) {
+            clusterSequence.push(dist2Next);
+            if(clusterSequence.length == 1) {
+                let index = clusterNumbers.indexOf(nextCluster);
+                if (index > -1) {
+                    clusterNumbers.splice(index, 1);
+                }
+            }
+            nextCluster = closestCluster;
+            //remove from clusterNumbers
+            let index = clusterNumbers.indexOf(closestCluster);
             if (index > -1) {
                 clusterNumbers.splice(index, 1);
             }
         }
-        nextCluster = closestCluster;
-        //remove from clusterNumbers
-        let index = clusterNumbers.indexOf(closestCluster);
-        if (index > -1) {
-            clusterNumbers.splice(index, 1);
+        else {
+            // Try a better path
+            // Go through the clusterSequence and find the summed
+            // distance to each pair
+            let newMinSum = dist2Next[2];
+            let betterOptionFlag = false;
+            let newSeq0 = [];
+            let newSeq1 = [];
+            let betterOptionIndex = -1;
+            for(let i = 0; i < clusterSequence.length; i++) {
+                let dist0 = getDistBetweenClusters(clusterSequence[i][0], closestCluster, highStitches);
+                let dist1 = getDistBetweenClusters(closestCluster, clusterSequence[i][1], highStitches);
+                let sumDist = dist0[2] + dist1[2];
+                if(sumDist < newMinSum) {
+                    // Found a better option
+                    newMinSum = sumDist;
+                    betterOptionFlag = true;
+                    newSeq0 = dist0;
+                    newSeq1 = dist1;
+                    betterOptionIndex = i;
+                }
+            }
+            if(betterOptionFlag) {
+                console.log("Better option found!", newSeq0, newSeq1);
+                clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
+                let index = clusterNumbers.indexOf(closestCluster);
+                if (index > -1) {
+                    clusterNumbers.splice(index, 1);
+                }
+            }
+            else {
+                clusterSequence.push(dist2Next);
+                if(clusterSequence.length == 1) {
+                    let index = clusterNumbers.indexOf(nextCluster);
+                    if (index > -1) {
+                        clusterNumbers.splice(index, 1);
+                    }
+                }
+                nextCluster = closestCluster;
+                //remove from clusterNumbers
+                let index = clusterNumbers.indexOf(closestCluster);
+                if (index > -1) {
+                    clusterNumbers.splice(index, 1);
+                }
+            }
         }
     }
     console.log(clusterSequence);
@@ -964,7 +1023,12 @@ function previewPath(type) {
         else {
             lineColor = "cyan";
         }
-        ctx.strokeStyle = lineColor;
+        if(cluster[2] > threshold) {
+            ctx.strokeStyle = "red";
+        }
+        else {
+            ctx.strokeStyle = lineColor;
+        }
         ctx.lineWidth = 2;
         ctx.stroke();
     })
