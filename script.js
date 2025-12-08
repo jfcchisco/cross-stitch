@@ -67,7 +67,7 @@ function addChangesToJsonObject() {
     let tiles = document.querySelectorAll('[data-tile-change]');
 
     jsonObject.stitches.forEach(stitch => {
-        for(i=0; i<tiles.length; i++) {
+        for(let i=0; i<tiles.length; i++) {
             let X = tiles[i].getAttribute('data-tile-x');
             let Y = tiles[i].getAttribute('data-tile-y');
             if(stitch.X == X && stitch.Y == Y) {
@@ -134,7 +134,7 @@ function checkAndAddColor (colors, line)
     let length = colors.length;
     let found = false;
     
-    for (i = 0; i < length; i ++) {
+    for (let i = 0; i < length; i ++) {
         
         if(line.dmcCode == colors[i].code) {
             found = true;
@@ -247,11 +247,11 @@ function drawGridLines() {
 }
 
 function drawHorizontalLines() {
-    for(i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
+    for(let i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
         let topRow = tileContainer.children.item((i*10));
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
-        for(j = 0; j < topRow.children.length; j++) {
+        for (let j = 0; j < topRow.children.length; j++) {
             topRow.children.item(j).classList.add("horBorder");
             //topRow.children.item(j).style.borderBottom = "2px solid black";
         }
@@ -259,18 +259,18 @@ function drawHorizontalLines() {
 }
 
 function drawVerticalLines() {
-    for(i = 0; i < tileContainer.children.length; i++) {
+    for (let i = 0; i < tileContainer.children.length; i++) {
         //Get 9th n-element of each row and add 
         let row = tileContainer.children.item(i);
-        for(j=1; j <= row.children.length; j++) {
-            if(j%10==0) {
+        for (let j = 1; j <= row.children.length; j++) {
+            if (j % 10 == 0) {
                 row.children.item(j).classList.add("borderRight");
                 //row.children.item(j).style.borderRight = "1px solid black";
                 //if(j<row.children.length-1) {
                 //    row.children.item(j+1).style.borderLeft = "1px solid black";
                 //}
             }
-            if(j%10==1 && j < row.children.length-1 && j > 1) {
+            if (j % 10 == 1 && j < row.children.length-1 && j > 1) {
                 row.children.item(j).classList.add("borderLeft");
             }
         }
@@ -283,16 +283,16 @@ function drawMiddleLines() {
     let midRowIndex = Math.round(jsonObject.properties.height / 2)
     let midRowTop = rows.children[midRowIndex];
     let midRowBot = rows.children[midRowIndex + 1];
-    for(i = 0; i < midRowTop.children.length; i ++) {
+    for (let i = 0; i < midRowTop.children.length; i ++) {
         midRowTop.children.item(i).classList.add("midRowTop");
     }
-    for(i = 0; i < midRowBot.children.length; i ++) {
+    for (let i = 0; i < midRowBot.children.length; i ++) {
         midRowBot.children.item(i).classList.add("midRowBot");
     }
     
     // Draw vertical middle line
     let midColIndex = Math.round(jsonObject.properties.width / 2)
-    for(i = 0; i < rows.children.length; i++) {
+    for (let i = 0; i < rows.children.length; i++) {
         let curRow = rows.children.item(i);
         curRow.children.item(midColIndex).classList.add("midColLeft");
         curRow.children.item(midColIndex + 1).classList.add("midColRight");
@@ -485,6 +485,21 @@ function getDMCValuesFromCode(code) {
     return color2return;
 }
 
+function getHighlightedStitches(code) {
+    let foundStitches = [];
+    let tileCollection = document.getElementsByClassName('tile');
+    for (let i = 0; i < tileCollection.length; i++) {
+        let obj = tileCollection[i];
+        let tileCode = obj.getAttribute('data-tile-code');
+        let tileX = Number(obj.getAttribute('data-tile-x'));
+        let tileY = Number(obj.getAttribute('data-tile-y'));
+        if(tileCode == code) {
+            foundStitches.push({"X":tileX, "Y":tileY, "code":tileCode, "cluster":0});
+        }
+    }
+    return foundStitches;
+}
+
 function getNeighborStitches(X, Y, code) {
     //array of coordinates to return for painting    
     let foundStitches = [];
@@ -651,7 +666,7 @@ function loadJSON(data) {
     rulerDiv.classList.add("vertRulerDiv");
     rulerRow.append(rulerDiv);
 
-    for(i=1; i<=cols; i++)  {
+    for (let i = 1; i <= cols; i++)  {
         const tileDiv = tileTemplate.content.cloneNode(true).children[0];
         //tileDiv.setAttribute('style', "background-color: rgb(241, 241, 241);");
         tileDiv.classList.add("horRulerRow");
@@ -670,7 +685,7 @@ function loadJSON(data) {
     //rulerRow.setAttribute('style', "position: sticky; top: 0")
     tileContainer.append(rulerRow);
 
-    for(j=1; j<=rows; j++) {
+    for (let j = 1; j <= rows; j++) {
         const newRow = rowTemplate.content.cloneNode(true).children[0];
 
         //Adding vertical ruler div
@@ -685,7 +700,7 @@ function loadJSON(data) {
         }
         newRow.append(rulerDiv);
 
-        for(i=1; i<=cols; i++)  {
+        for (let i = 1; i <= cols; i++)  {
             const tileDiv = tileTemplate.content.cloneNode(true).children[0];
             if(i%2==0) {
                 tileDiv.setAttribute('style', "background-color: white");
@@ -805,7 +820,6 @@ function preview(data) {
     let modal = document.getElementById("previewModal");
 
     let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
-    
     canvas.height = box * rows;
     canvas.width =  box * cols;
 
@@ -819,7 +833,7 @@ function preview(data) {
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-    for(i = 0; i < data.length; i++) {
+    for (let i = 0; i < data.length; i++) {
         let tileValues = data[i];
         // if(i < 10) {
         //    console.log(tileValues);
@@ -838,6 +852,170 @@ function preview(data) {
             ctx.fillRect(tileValues.X * box, tileValues.Y * box, tileValues.X * box + box, tileValues.Y * box + box);
         }
     }
+
+    let createPathButton = document.getElementById("createPath");
+    createPathButton.style.display = "none";
+    if(highFlag && highCode != 0) {
+        createPathButton.style.display = "block";
+    }
+}
+
+function previewPath(type) {
+    // This function should be called only when there is already a created canvas
+    // with the highlighted color and highlight flag activated
+    let highStitches = getHighlightedStitches(highCode);
+    highStitches = assignClusters(highStitches);
+    console.log(highStitches);
+    let clusterNumbers = [];
+    highStitches.forEach(s => {
+        if(!clusterNumbers.includes(s.cluster)) {
+            clusterNumbers.push(s.cluster);
+        }
+    });
+
+    let canvas = document.getElementById("canvas");
+    let ctx = canvas.getContext('2d');
+
+    //Repeated drawing of stitches
+    let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
+    
+    ctx.clearRect(0,0, canvas.width, canvas.height)
+    ctx.fillStyle = "#ffffff"
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Draw one rectangle as test
+    let s = highStitches[1];
+    //console.log(box, s.X*box, s.Y*box, (s.X*box)+box, (s.Y*box)+box);
+    ctx.fillStyle = "#000000";
+    ctx.fillRect(10,10,20,20);
+    //ctx.fillRect(s.X*box, s.Y*box, s.X*box+box, s.Y*box+box);
+
+    const tileCollection = document.getElementsByClassName("tile");
+    //for (let i = 0; i < collection.length; i++) {
+    //    collection[i].classList.remove("activeColor");
+    //}
+
+    for (let i = 0; i < tileCollection.length; i++) {
+        let tileObj = tileCollection[i];
+        let code = tileObj.getAttribute('data-tile-code');
+        //console.log(code);
+        let x = Number(tileObj.getAttribute('data-tile-x'));
+        let y = Number(tileObj.getAttribute('data-tile-y'));
+        // if(i < 10) {
+        //    console.log(tileValues);
+        //}
+        //Adding offset due to ruler
+        //let row = tileContainer.children.item(tileValues.Y + 1);
+        //let tile = row.children.item(tileValues.X + 1)
+
+        //let backColor = tile.style.backgroundColor;
+        if(code == highCode) {
+            ctx.fillStyle = "#000000";;
+            ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
+        }
+        else {
+            ctx.fillStyle = "#ffffff";
+            ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
+        }
+    }
+
+    let clusterSequence = [];
+    let nextCluster = 1;
+    let closestCluster = 0;
+    while(clusterNumbers.length > 0) {
+        let dist2Next = [nextCluster, 0, Infinity, [0,0], [0,0]];
+        for (let i = 0; i < clusterNumbers.length; i++) {
+            let cNum = clusterNumbers[i];
+            let dist2Cluster = getDistBetweenClusters(nextCluster, cNum, highStitches);
+            if(dist2Cluster[2] < dist2Next[2] && dist2Cluster[2] != 0) {
+                dist2Next = dist2Cluster;
+                closestCluster = cNum;
+
+            }
+        }
+        clusterSequence.push(dist2Next);
+        if(clusterSequence.length == 1) {
+            let index = clusterNumbers.indexOf(nextCluster);
+            if (index > -1) {
+                clusterNumbers.splice(index, 1);
+            }
+        }
+        nextCluster = closestCluster;
+        //remove from clusterNumbers
+        let index = clusterNumbers.indexOf(closestCluster);
+        if (index > -1) {
+            clusterNumbers.splice(index, 1);
+        }
+    }
+    console.log(clusterSequence);
+
+    // Draw path lines
+
+
+    // Draw a line just for testing
+    let lineColor = "cyan";
+    clusterSequence.forEach(cluster => {
+        ctx.beginPath();
+        ctx.moveTo(cluster[3][0]*box + box/2, cluster[3][1]*box + box/2);
+        ctx.lineTo(cluster[4][0]*box + box/2, cluster[4][1]*box + box/2);
+        if(lineColor == "cyan") {
+            lineColor = "greenyellow";
+        }
+        else {
+            lineColor = "cyan";
+        }
+        ctx.strokeStyle = lineColor;
+        ctx.lineWidth = 2;
+        ctx.stroke();
+    })
+    
+    console.log(clusterNumbers);
+    // ctx.beginPath();
+    // ctx.moveTo(0,0);
+    // ctx.lineTo(200,100);
+    // ctx.strokeStyle = "red";
+    // ctx.stroke();
+}
+
+function assignClusters(stitchesList) {
+    // Assign clusters to a list of highlighted stitches
+    let clusterCounter = 0;
+    for(let i=0; i < stitchesList.length; i++) {
+        let s = stitchesList[i];
+        // console.log("S", s);
+        if(s.cluster == 0) {
+            clusterCounter += 1;
+            let neighborList = getNeighborStitches(s.X, s.Y, s.code);
+            for(let j=0; j<neighborList.length; j++) {
+                for(let k=0; k<stitchesList.length; k++) {
+                    let s2 = stitchesList[k];
+                    if(s2.X == neighborList[j].X && s2.Y == neighborList[j].Y) {
+                        stitchesList[k].cluster = clusterCounter;
+                    }
+                }
+            }
+        }
+    }
+    return stitchesList;
+}
+
+function getDistBetweenClusters(c1, c2, sList) {
+    let retVal = [0, 0, 0, [0, 0], [0, 0]];
+    let dist = Infinity;
+    for(let s1 of sList) {
+        if(s1.cluster == c1) {
+            for(let s2 of sList) {
+                if(s2.cluster == c2) {
+                    let newDist = Math.sqrt((s1.X - s2.X) ** 2 + (s1.Y - s2.Y) ** 2);
+                    if(newDist < dist) {
+                        dist = newDist;
+                        retVal = [c1, c2, dist, [s1.X, s1.Y], [s2.X, s2.Y] ];
+                    }
+                }
+            }
+        }
+    }
+    return retVal;
 }
 
 function previewClose() {
@@ -1034,7 +1212,7 @@ function undo() {
         // Update stitch count and restore original count
         let length = colorArray.length;
         
-        for (i = 0; i < length; i ++) {
+        for (let i = 0; i < length; i ++) {
             
             if(origCode == colorArray[i].code) {
                 colorArray[i].count = colorArray[i].count + 1;
@@ -1056,7 +1234,7 @@ function undo() {
 }
 
 function updateColor(stitches) {
-    for(i=0; i<stitches.length; i++) {
+    for (let i = 0; i < stitches.length; i++) {
         let tileValues = stitches[i];
 
         let tileColor = getDMCValuesFromCode(tileValues.dmcCode);
