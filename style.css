@@ -229,6 +229,7 @@ table, th, td {
 .pathButtons {
     border: 2px solid gray;
     border-radius: 3px;
+    width: auto;
 }
 
 .pathButton {
@@ -239,6 +240,6 @@ table, th, td {
     margin: 5px;
     cursor: pointer;
     user-select: none;
-    width: 90px;
+    width: 33%;
     text-align: center;
 }

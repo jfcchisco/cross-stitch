@@ -940,7 +940,6 @@ function previewPath(type) {
             if(dist2Cluster[2] < dist2Next[2] && dist2Cluster[2] != 0) {
                 dist2Next = dist2Cluster;
                 closestCluster = cNum;
-
             }
         }
 
@@ -1006,12 +1005,21 @@ function previewPath(type) {
             }
         }
     }
-    console.log(clusterSequence);
-
+    // console.log(clusterSequence);
+    // Draw circle on the initial point
+    ctx.beginPath();
+    ctx.arc(clusterSequence[0][3][0]*box + box/2, clusterSequence[0][3][1]*box + box/2, box, 0, 2 * Math.PI);
+    ctx.strokeStyle = "red";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+    // Draw circle on the final point
+    let lastCluster = clusterSequence[clusterSequence.length - 1];
+    ctx.beginPath();   
+    ctx.arc(lastCluster[4][0]*box + box/2, lastCluster[4][1]*box + box/2, box, 0, 2 * Math.PI);
+    ctx.strokeStyle = "orange";
+    ctx.lineWidth = 2;
+    ctx.stroke();
     // Draw path lines
-
-
-    // Draw a line just for testing
     let lineColor = "cyan";
     clusterSequence.forEach(cluster => {
         ctx.beginPath();
