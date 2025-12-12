@@ -229,7 +229,8 @@ table, th, td {
 .pathButtons {
     border: 2px solid gray;
     border-radius: 3px;
-    width: auto;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
 }
 
 .pathButton {
@@ -240,6 +241,5 @@ table, th, td {
     margin: 5px;
     cursor: pointer;
     user-select: none;
-    width: 20%;
     text-align: center;
 }

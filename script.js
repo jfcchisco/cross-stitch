@@ -856,7 +856,7 @@ function preview(data) {
     let createPathDiv = document.getElementsByClassName("pathButtons")[0];
     createPathDiv.style.display = "none";
     if(highFlag && highCode != 0) {
-        createPathDiv.style.display = "block";
+        createPathDiv.style.display = "grid";
     }
 }
 
