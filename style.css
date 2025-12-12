@@ -240,6 +240,6 @@ table, th, td {
     margin: 5px;
     cursor: pointer;
     user-select: none;
-    width: 33%;
+    width: 20%;
     text-align: center;
 }

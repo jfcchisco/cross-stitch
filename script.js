@@ -929,8 +929,12 @@ function previewPath(type) {
         nextCluster = clusterNumbers[0];
     }
     else if(type == 1) {
+        nextCluster = getClosestClusterToCenter(clusterNumbers, highStitches, cols/2, rows/2);
+    }
+    else if(type == 2) {
         nextCluster = clusterNumbers[Math.floor(Math.random() * clusterNumbers.length)];
     }
+    
     let closestCluster = 0;
     while(clusterNumbers.length > 0) {
         let dist2Next = [nextCluster, 0, Infinity, [0,0], [0,0]];
@@ -1089,6 +1093,27 @@ function getDistBetweenClusters(c1, c2, sList) {
     }
     return retVal;
 }
+
+function getClosestClusterToCenter(clusterNumbers, sList, centerX, centerY) {
+    let retCluster = -1;
+    let dist = Infinity;
+    for(let c of clusterNumbers) {
+        for(let s of sList) {
+            if(s.cluster == c) {
+                let newDist = Math.sqrt((s.X - centerX) ** 2 + (s.Y - centerY) ** 2);
+                if(newDist < dist) {
+                    dist = newDist;
+                    retCluster = c;
+                }
+
+            }
+        }
+    }
+    return retCluster;
+}
+
+            
+
 
 function previewClose() {
     let modal = document.getElementById("previewModal");
