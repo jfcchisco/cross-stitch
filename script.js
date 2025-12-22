@@ -941,13 +941,15 @@ function previewPath(type) {
     }
     else if(type == 2) {
         // Closest to bottom-right
-        let coordX = prompt("X:", 0);
-        let coordY = prompt("Y:", 0);
-        if(coordX == null || coordX > rows || coordX < 0 || !Number.isInteger(coordX)) {
+        let coordX = Number(prompt("X:", 0));
+        let coordY = Number(prompt("Y:", 0));
+        console.log(typeof(coordX), typeof(coordY));
+        console.log(Number.isInteger(coordX), Number.isInteger(coordY));
+        if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
             alert("Invalid X coordinate, using 0"); 
             coordX = 0;
         }
-        if(coordY == null || coordY > cols || coordY < 0 || !Number.isInteger(coordY)) {
+        if(coordY == null || !Number.isInteger(coordY) || coordY > rows || coordY < 0) {
             alert("Invalid Y coordinate, using 0");
             coordY = 0;
         }
