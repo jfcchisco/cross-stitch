@@ -833,6 +833,7 @@ function preview(data) {
     ctx.fillStyle = "#ffffff"
     ctx.fillRect(0, 0, canvas.width, canvas.height);
 
+    
     for (let i = 0; i < data.length; i++) {
         let tileValues = data[i];
         // if(i < 10) {
@@ -853,10 +854,15 @@ function preview(data) {
         }
     }
 
+    drawPreviewGridLines(box, ctx);
+
     let createPathDiv = document.getElementsByClassName("pathButtons")[0];
+    let thresholdDiv = document.getElementsByClassName("thresholdDiv")[0];
+    thresholdDiv.style.display = "none";
     createPathDiv.style.display = "none";
     if(highFlag && highCode != 0) {
         createPathDiv.style.display = "grid";
+        thresholdDiv.style.display = "block";
     }
 }
 
@@ -869,7 +875,7 @@ function previewPath(type) {
     
     let highStitches = getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
-    console.log(highStitches);
+    // console.log(highStitches);
     let clusterNumbers = [];
     highStitches.forEach(s => {
         if(!clusterNumbers.includes(s.cluster)) {
@@ -926,12 +932,28 @@ function previewPath(type) {
     let clusterSequence = [];
     let nextCluster = 0;
     if(type == 0) {
-        nextCluster = clusterNumbers[0];
+        // Closest to top-left
+        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, 0, 0);
     }
     else if(type == 1) {
-        nextCluster = getClosestClusterToCenter(clusterNumbers, highStitches, cols/2, rows/2);
+        // Closest to center
+        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, cols/2, rows/2);
     }
     else if(type == 2) {
+        // Closest to bottom-right
+        let coordX = prompt("X:", 0);
+        let coordY = prompt("Y:", 0);
+        if(coordX == null || coordX > rows || coordX < 0 || !Number.isInteger(coordX)) {
+            alert("Invalid X coordinate, using 0"); 
+            coordX = 0;
+        }
+        if(coordY == null || coordY > cols || coordY < 0 || !Number.isInteger(coordY)) {
+            alert("Invalid Y coordinate, using 0");
+            coordY = 0;
+        }
+        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, coordX, coordY);
+    }
+    else if(type == 3) {
         nextCluster = clusterNumbers[Math.floor(Math.random() * clusterNumbers.length)];
     }
     
@@ -985,7 +1007,7 @@ function previewPath(type) {
                 }
             }
             if(betterOptionFlag) {
-                console.log("Better option found!", newSeq0, newSeq1);
+                // console.log("Better option found!", newSeq0, newSeq1);
                 clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
                 let index = clusterNumbers.indexOf(closestCluster);
                 if (index > -1) {
@@ -1045,7 +1067,9 @@ function previewPath(type) {
         ctx.stroke();
     })
     
-    console.log(clusterNumbers);
+    drawPreviewGridLines(box, ctx);
+
+    //console.log(clusterNumbers);
     // ctx.beginPath();
     // ctx.moveTo(0,0);
     // ctx.lineTo(200,100);
@@ -1094,13 +1118,13 @@ function getDistBetweenClusters(c1, c2, sList) {
     return retVal;
 }
 
-function getClosestClusterToCenter(clusterNumbers, sList, centerX, centerY) {
+function getClosestClusterToPoint(clusterNumbers, sList, pointX, pointY) {
     let retCluster = -1;
     let dist = Infinity;
     for(let c of clusterNumbers) {
         for(let s of sList) {
             if(s.cluster == c) {
-                let newDist = Math.sqrt((s.X - centerX) ** 2 + (s.Y - centerY) ** 2);
+                let newDist = Math.sqrt((s.X - pointX) ** 2 + (s.Y - pointY) ** 2);
                 if(newDist < dist) {
                     dist = newDist;
                     retCluster = c;
@@ -1112,8 +1136,24 @@ function getClosestClusterToCenter(clusterNumbers, sList, centerX, centerY) {
     return retCluster;
 }
 
-            
-
+function drawPreviewGridLines(argBox, argCtx) {          
+    argCtx.beginPath();
+    for(let i=0; i<=rows; i++) {
+        if(i%10 == 0 || i==rows) {
+            argCtx.moveTo(0, i*argBox);
+            argCtx.lineTo(cols*argBox, i*argBox);
+        }
+    }
+    for(let j=0; j<=cols; j++) {
+        if(j%10 == 0 || j==cols) {
+            argCtx.moveTo(j*argBox, 0);
+            argCtx.lineTo(j*argBox, rows*argBox);
+        }
+    }
+    argCtx.strokeStyle = "gray";
+    argCtx.lineWidth = 1;
+    argCtx.stroke();
+}
 
 function previewClose() {
     let modal = document.getElementById("previewModal");
