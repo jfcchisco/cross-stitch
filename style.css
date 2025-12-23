@@ -243,3 +243,13 @@ table, th, td {
     user-select: none;
     text-align: center;
 }
+
+.inputFields {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.inputField {
+    margin: 5px;
+    padding: 2px 5px;
+}

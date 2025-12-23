@@ -105,10 +105,20 @@
                 <span class="pathButton" onclick="previewPath(2)">COORD</span>
                 <span class="pathButton" onclick="previewPath(3)">RANDOM</span>
             </div>
-            <div class="thresholdDiv">
-                <label for="pathInput">Threshold:</label>
-                <input type="number" id="pathInput" placeholder="Enter whole number..." inputmode="numeric" min="0" step="1" value="10" />
+            <div class="inputFields">
+                <div class="inputField thresholdDiv">
+                    <label for="pathInput">Threshold:</label>
+                    <input type="number" id="pathInput" placeholder="Enter whole number..." inputmode="numeric" min="0" step="1" value="10" />
+                </div>
+                <div class="inputField">
+                    <label for="pathXInput">Start X:</label>
+                    <input type="number" id="pathXInput" placeholder="Enter whole number..." inputmode="numeric" min="0" step="1" value="0" />
+                </div>
+                <div class="inputField">
+                    <label for="pathYInput">Start Y:</label>
+                    <input type="number" id="pathYInput" placeholder="Enter whole number..." inputmode="numeric" min="0" step="1" value="0" />
             </div>
+            
         </div>
         
     </div>

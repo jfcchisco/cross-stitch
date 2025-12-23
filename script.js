@@ -857,12 +857,12 @@ function preview(data) {
     drawPreviewGridLines(box, ctx);
 
     let createPathDiv = document.getElementsByClassName("pathButtons")[0];
-    let thresholdDiv = document.getElementsByClassName("thresholdDiv")[0];
-    thresholdDiv.style.display = "none";
+    let inputFields = document.getElementsByClassName("inputFields")[0];
+    inputFields.style.display = "none";
     createPathDiv.style.display = "none";
     if(highFlag && highCode != 0) {
         createPathDiv.style.display = "grid";
-        thresholdDiv.style.display = "block";
+        inputFields.style.display = "grid";
     }
 }
 
@@ -941,8 +941,10 @@ function previewPath(type) {
     }
     else if(type == 2) {
         // Closest to bottom-right
-        let coordX = Number(prompt("X:", 0));
-        let coordY = Number(prompt("Y:", 0));
+        // let coordX = Number(prompt("X:", 0));
+        // let coordY = Number(prompt("Y:", 0));
+        let coordX = Number(document.getElementById("pathXInput").value);
+        let coordY = Number(document.getElementById("pathYInput").value);
         console.log(typeof(coordX), typeof(coordY));
         console.log(Number.isInteger(coordX), Number.isInteger(coordY));
         if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
