@@ -225,3 +225,31 @@ table, th, td {
 .midColRight {
     border-left: 1px dashed black;
 }
+
+.pathButtons {
+    border: 2px solid gray;
+    border-radius: 3px;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.pathButton {
+    background-color: lightgray;
+    border: 1px solid gray;
+    border-radius: 3px;
+    padding: 2px 5px;
+    margin: 5px;
+    cursor: pointer;
+    user-select: none;
+    text-align: center;
+}
+
+.inputFields {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+}
+
+.inputField {
+    margin: 5px;
+    padding: 2px 5px;
+}
