@@ -127,6 +127,7 @@ html, body
 .tile-container {
     overflow: scroll;
     height:82vh;
+    position: relative;
 }
 
 .row {
@@ -224,4 +225,10 @@ table, th, td {
 
 .midColRight {
     border-left: 1px dashed black;
+}
+
+.svg-container {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
 }
