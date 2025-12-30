@@ -8,6 +8,8 @@ const footNote = document.querySelector("[data-footnote]");
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
 let DEFAULT_HEIGHT = 20;
+let CLUSTER_SEQUENCE = []
+let THRESHOLD = 10;
 
 let box = 50; // Stitch width and height
 let i = 0;
@@ -248,7 +250,7 @@ function drawGridLines() {
 
 function drawHorizontalLines() {
     for(let i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
-        let topRow = tileContainer.children.item((i*10));
+        let topRow = tileContainer.children.item((i*10)+1);
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
         for (let j = 0; j < topRow.children.length; j++) {
@@ -292,7 +294,7 @@ function drawMiddleLines() {
     
     // Draw vertical middle line
     let midColIndex = Math.round(jsonObject.properties.width / 2)
-    for (let i = 0; i < rows.children.length; i++) {
+    for (let i = 1; i < rows.children.length; i++) {
         let curRow = rows.children.item(i);
         curRow.children.item(midColIndex).classList.add("midColLeft");
         curRow.children.item(midColIndex + 1).classList.add("midColRight");
@@ -657,6 +659,24 @@ function loadJSON(data) {
             tileContainer.removeChild(tileContainer.lastElementChild);
           }
     }
+
+    // Adding svg-container
+    const svgContainer = document.createElement("div");
+    svgContainer.setAttribute("class", "svg-container");
+    const newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    /* const lineTest = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    lineTest.setAttribute("x1", "50");
+    lineTest.setAttribute("y1", "50");
+    lineTest.setAttribute("x2", "180");
+    lineTest.setAttribute("y2", "180");
+    lineTest.setAttribute("stroke", "red");
+    lineTest.setAttribute("stroke-width", "2");
+    newSVG.setAttribute("viewBox", "0 0 200 200");
+    newSVG.setAttribute("width", "200");
+    newSVG.setAttribute("height", "200");
+    newSVG.append(lineTest); */
+    svgContainer.append(newSVG);
+    tileContainer.append(svgContainer);
     
     const rulerRow = rowTemplate.content.cloneNode(true).children[0];
     
@@ -839,8 +859,8 @@ function preview(data) {
         // if(i < 10) {
         //    console.log(tileValues);
         //}
-        //Adding offset due to ruler
-        let row = tileContainer.children.item(tileValues.Y + 1);
+        //Adding offset due to ruler and svg-container
+        let row = tileContainer.children.item(tileValues.Y + 2);
         let tile = row.children.item(tileValues.X + 1)
 
         let backColor = tile.style.backgroundColor;
@@ -1070,7 +1090,9 @@ function previewPath(type) {
         ctx.lineWidth = 2;
         ctx.stroke();
     })
-    
+    // Copy to global variable
+    CLUSTER_SEQUENCE = clusterSequence;
+    THRESHOLD = threshold;
     drawPreviewGridLines(box, ctx);
 
     //console.log(clusterNumbers);
@@ -1138,6 +1160,47 @@ function getClosestClusterToPoint(clusterNumbers, sList, pointX, pointY) {
         }
     }
     return retCluster;
+}
+
+function drawSVG() {
+    if(CLUSTER_SEQUENCE.length === 0) {
+        return;
+    }
+    let tileWidth = document.getElementsByClassName("tile")[0].offsetWidth;
+    let svgContainer = document.getElementsByClassName("svg-container")[0].children[0];
+    // Delete all previous lines
+    while (svgContainer.lastElementChild) { 
+        svgContainer.removeChild(svgContainer.lastElementChild);
+    }
+
+    let svgWidth = tileWidth * (cols + 1);
+    let svgHeight = tileWidth * (rows + 1);
+    svgContainer.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+    svgContainer.setAttribute("width", svgWidth);
+    svgContainer.setAttribute("height", svgHeight);
+    let lineColor = "blue";
+    CLUSTER_SEQUENCE.forEach(cluster => {
+        let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        
+        newLine.setAttribute("x1", (cluster[3][0]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("y1", (cluster[3][1]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("x2", (cluster[4][0]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("y2", (cluster[4][1]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("stroke-width", "2");
+        console.log("1 ", lineColor);
+        if(lineColor == "blue") {
+            lineColor = "green";
+        }
+        else {
+            lineColor = "blue";
+        }
+        if(cluster[2] > THRESHOLD) {
+            lineColor = "red";
+        }
+        console.log("2 ", lineColor);
+        newLine.setAttribute("stroke", lineColor);
+        svgContainer.append(newLine); 
+    });
 }
 
 function drawPreviewGridLines(argBox, argCtx) {          
@@ -1348,8 +1411,7 @@ function undo() {
 
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
-        //tile.setAttribute('style', color)
-
+        
         // Update stitch count and restore original count
         let length = colorArray.length;
         
@@ -1387,8 +1449,8 @@ function updateColor(stitches) {
         let symbol = tileColor.symbol;
         let code = tileColor.dmcCode;
 
-        //+1 to compensate for the horizontal ruler
-        let row = tileContainer.children.item(tileValues.Y + 1);
+        //+2 to compensate for the horizontal ruler
+        let row = tileContainer.children.item(tileValues.Y + 2);
 
         //+1 to compensate for the vertical ruler
         let tile = row.children.item(tileValues.X + 1);
@@ -1500,7 +1562,7 @@ function updateColorAfterPaint(colors, origCode, total) {
 
 
 function updateTileColor() {
-    for(i = 1; i < tileContainer.children.length; i++) {
+    for(i = 2; i < tileContainer.children.length; i++) {
         let row = tileContainer.children[i];
         for(j = 1; j < row.children.length; j++) {
             let tile = row.children[j];

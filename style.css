@@ -126,7 +126,8 @@ html, body
 
 .tile-container {
     overflow: scroll;
-    height:82vh;
+    height: 82vh;
+    position: relative;
 }
 
 .row {
@@ -252,4 +253,10 @@ table, th, td {
 .inputField {
     margin: 5px;
     padding: 2px 5px;
+}
+
+.svg-container {
+    position: absolute;
+    pointer-events: none;
+    user-select: none;
 }
