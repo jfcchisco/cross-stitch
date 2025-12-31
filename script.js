@@ -1178,7 +1178,38 @@ function drawSVG() {
     svgContainer.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
     svgContainer.setAttribute("width", svgWidth);
     svgContainer.setAttribute("height", svgHeight);
-    let lineColor = "blue";
+    /// Insert defs for arrowheads
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker1 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker1.setAttribute("id", "arrowhead");   
+    marker1.setAttribute("markerWidth", "5");
+    marker1.setAttribute("markerHeight", "4");
+    marker1.setAttribute("refX", "4");
+    marker1.setAttribute("refY", "3");
+    marker1.setAttribute("orient", "auto");
+    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
+    arrowPath.setAttribute("fill", "yellow");
+    marker1.appendChild(arrowPath);
+    defs.appendChild(marker1);
+
+    const marker2 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker2.setAttribute("id", "circle");
+    marker2.setAttribute("markerWidth", "10");
+    marker2.setAttribute("markerHeight", "10");
+    marker2.setAttribute("refX", "5");
+    marker2.setAttribute("refY", "5");
+    marker2.setAttribute("orient", "auto");
+    const circlePath = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circlePath.setAttribute("cx", "5");
+    circlePath.setAttribute("cy", "5");
+    circlePath.setAttribute("r", "5");
+    circlePath.setAttribute("fill", "red");
+    marker2.appendChild(circlePath);
+    defs.appendChild(marker2);
+    svgContainer.appendChild(defs);
+
+    let lineColor = "cyan";
     CLUSTER_SEQUENCE.forEach(cluster => {
         let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
         
@@ -1187,17 +1218,16 @@ function drawSVG() {
         newLine.setAttribute("x2", (cluster[4][0]*tileWidth + tileWidth + tileWidth/2).toString());
         newLine.setAttribute("y2", (cluster[4][1]*tileWidth + tileWidth + tileWidth/2).toString());
         newLine.setAttribute("stroke-width", "2");
-        console.log("1 ", lineColor);
-        if(lineColor == "blue") {
-            lineColor = "green";
+        newLine.setAttribute("marker-end", "url(#arrowhead)");
+        if(lineColor == "cyan") {
+            lineColor = "yellowgreen";
         }
         else {
-            lineColor = "blue";
+            lineColor = "cyan";
         }
         if(cluster[2] > THRESHOLD) {
             lineColor = "red";
         }
-        console.log("2 ", lineColor);
         newLine.setAttribute("stroke", lineColor);
         svgContainer.append(newLine); 
     });
