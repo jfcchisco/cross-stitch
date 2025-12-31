@@ -1181,32 +1181,59 @@ function drawSVG() {
     /// Insert defs for arrowheads
     const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
     const marker1 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    marker1.setAttribute("id", "arrowhead");   
+    marker1.setAttribute("id", "arrow1");   
     marker1.setAttribute("markerWidth", "5");
     marker1.setAttribute("markerHeight", "4");
     marker1.setAttribute("refX", "4");
-    marker1.setAttribute("refY", "3");
+    marker1.setAttribute("refY", "2.5");
     marker1.setAttribute("orient", "auto");
-    const arrowPath = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    arrowPath.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
-    arrowPath.setAttribute("fill", "yellow");
-    marker1.appendChild(arrowPath);
+    const arrowPath1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath1.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
+    arrowPath1.setAttribute("fill", "cyan");
+    marker1.appendChild(arrowPath1);
     defs.appendChild(marker1);
 
     const marker2 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
-    marker2.setAttribute("id", "circle");
-    marker2.setAttribute("markerWidth", "10");
-    marker2.setAttribute("markerHeight", "10");
-    marker2.setAttribute("refX", "5");
-    marker2.setAttribute("refY", "5");
+    marker2.setAttribute("id", "arrow2");   
+    marker2.setAttribute("markerWidth", "5");
+    marker2.setAttribute("markerHeight", "4");
+    marker2.setAttribute("refX", "4");
+    marker2.setAttribute("refY", "2.5");
     marker2.setAttribute("orient", "auto");
+    const arrowPath2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath2.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
+    arrowPath2.setAttribute("fill", "yellowgreen");
+    marker2.appendChild(arrowPath2);
+    defs.appendChild(marker2);
+
+    const marker3 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker3.setAttribute("id", "arrow3");   
+    marker3.setAttribute("markerWidth", "5");
+    marker3.setAttribute("markerHeight", "4");
+    marker3.setAttribute("refX", "4");
+    marker3.setAttribute("refY", "2.5");
+    marker3.setAttribute("orient", "auto");
+    const arrowPath3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath3.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
+    arrowPath3.setAttribute("fill", "red");
+    marker3.appendChild(arrowPath3);
+    defs.appendChild(marker3);
+    
+    const marker4 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker4.setAttribute("id", "circle");
+    marker4.setAttribute("markerWidth", "10");
+    marker4.setAttribute("markerHeight", "10");
+    marker4.setAttribute("refX", "5");
+    marker4.setAttribute("refY", "5");
+    marker4.setAttribute("orient", "auto");
     const circlePath = document.createElementNS("http://www.w3.org/2000/svg", "circle");
     circlePath.setAttribute("cx", "5");
     circlePath.setAttribute("cy", "5");
     circlePath.setAttribute("r", "5");
     circlePath.setAttribute("fill", "red");
-    marker2.appendChild(circlePath);
-    defs.appendChild(marker2);
+    marker4.appendChild(circlePath);
+    defs.appendChild(marker4);
+
     svgContainer.appendChild(defs);
 
     let lineColor = "cyan";
@@ -1221,12 +1248,15 @@ function drawSVG() {
         newLine.setAttribute("marker-end", "url(#arrowhead)");
         if(lineColor == "cyan") {
             lineColor = "yellowgreen";
+            newLine.setAttribute("marker-end", "url(#arrow2)");
         }
         else {
             lineColor = "cyan";
+            newLine.setAttribute("marker-end", "url(#arrow1)");
         }
         if(cluster[2] > THRESHOLD) {
             lineColor = "red";
+            newLine.setAttribute("marker-end", "url(#arrow3)");
         }
         newLine.setAttribute("stroke", lineColor);
         svgContainer.append(newLine); 
