@@ -1189,7 +1189,7 @@ function drawSVG() {
     marker1.setAttribute("orient", "auto");
     const arrowPath1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrowPath1.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
-    arrowPath1.setAttribute("fill", "cyan");
+    arrowPath1.setAttribute("fill", "dodgerblue");
     marker1.appendChild(arrowPath1);
     defs.appendChild(marker1);
 
@@ -1202,7 +1202,7 @@ function drawSVG() {
     marker2.setAttribute("orient", "auto");
     const arrowPath2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
     arrowPath2.setAttribute("d", "M0,0 L0,7 L10,3.5 z");
-    arrowPath2.setAttribute("fill", "yellowgreen");
+    arrowPath2.setAttribute("fill", "orange");
     marker2.appendChild(arrowPath2);
     defs.appendChild(marker2);
 
@@ -1236,7 +1236,7 @@ function drawSVG() {
 
     svgContainer.appendChild(defs);
 
-    let lineColor = "cyan";
+    let lineColor = "dodgerblue";
     CLUSTER_SEQUENCE.forEach(cluster => {
         let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
         
@@ -1246,12 +1246,12 @@ function drawSVG() {
         newLine.setAttribute("y2", (cluster[4][1]*tileWidth + tileWidth + tileWidth/2).toString());
         newLine.setAttribute("stroke-width", "2");
         newLine.setAttribute("marker-end", "url(#arrowhead)");
-        if(lineColor == "cyan") {
-            lineColor = "yellowgreen";
+        if(lineColor == "dodgerblue") {
+            lineColor = "orange";
             newLine.setAttribute("marker-end", "url(#arrow2)");
         }
         else {
-            lineColor = "cyan";
+            lineColor = "dodgerblue";
             newLine.setAttribute("marker-end", "url(#arrow1)");
         }
         if(cluster[2] > THRESHOLD) {
