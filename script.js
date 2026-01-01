@@ -78,9 +78,7 @@ function addChangesToJsonObject() {
                 tiles[i].removeAttribute('data-tile-orig-code');
                 let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
                 tiles[i].setAttribute('title', tileTitle);
-                // console.log(stitch);
                 stitch.dmcCode = 'stitched';
-                // console.log(stitch);
             }
         }
     })
@@ -174,12 +172,10 @@ function convertFileToStitches(data) {
 
     let stitches = data.stitches.split(",");
     let lastID = 0;
-    //console.log(stitches);
     
     for (let index in stitches) {
         let id = parseInt(stitches[index].split("-")[0]);
         let code = stitches[index].split("-")[1];
-        //console.log(stitches[index], id, code);
         while(lastID <= id) {
             let x = lastID % data.properties.width;
             let y = Math.floor(lastID / data.properties.width);
@@ -225,7 +221,6 @@ function convertStitchesToFile(data) {
     for (const [index, stitch] of data.stitches.entries()) {
         code = stitch.dmcCode;
         id = stitch.Y * data.properties.width + stitch.X;
-        // console.log(id);
         if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
             //Last stitch
             newStitches = newStitches.concat(id, "-", code);
@@ -469,7 +464,6 @@ function getDMCName(code) {
 function getDMCSymbol(code) {
     let dmcSymbol = "Unknown";
     jsonObject.colors.forEach(obj => {
-        //console.log(obj);
         if(obj.dmcCode === code) {
             dmcSymbol = obj.dmcSymbol;
         }
@@ -541,10 +535,8 @@ function getNeighborStitches(X, Y, code) {
         ];
 
         edges.forEach(edge => {
-            //console.log(edge.X, edge.Y);
             //let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
-            //console.log(tile);
-
+            
             if(getStitchColor(edge) == color2Paint) {
                 if(!IsCoordAlreadyThere(edge, foundStitches)) {
                     newStitches.push(edge);
@@ -828,7 +820,6 @@ function paintClick(tile, counter) {
 
     tile.style.backgroundColor = "rgba(0, 255, 0, 1)"
     tile.children.item(0).style.color = 'white';
-    //console.log(colorArray);
     tile.children.item(0).innerText = '×';
 
 }
@@ -856,9 +847,6 @@ function preview(data) {
     
     for (let i = 0; i < data.length; i++) {
         let tileValues = data[i];
-        // if(i < 10) {
-        //    console.log(tileValues);
-        //}
         //Adding offset due to ruler and svg-container
         let row = tileContainer.children.item(tileValues.Y + 2);
         let tile = row.children.item(tileValues.X + 1)
@@ -891,11 +879,9 @@ function previewPath(type) {
     // with the highlighted color and highlight flag activated
     const thresholdInput = document.getElementById('pathInput');
     const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
-    //console.log('Threshold value:', threshold);
     
     let highStitches = getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
-    // console.log(highStitches);
     let clusterNumbers = [];
     highStitches.forEach(s => {
         if(!clusterNumbers.includes(s.cluster)) {
@@ -915,7 +901,6 @@ function previewPath(type) {
 
     // Draw one rectangle as test
     let s = highStitches[1];
-    //console.log(box, s.X*box, s.Y*box, (s.X*box)+box, (s.Y*box)+box);
     ctx.fillStyle = "#000000";
     ctx.fillRect(10,10,20,20);
     //ctx.fillRect(s.X*box, s.Y*box, s.X*box+box, s.Y*box+box);
@@ -928,12 +913,8 @@ function previewPath(type) {
     for (let i = 0; i < tileCollection.length; i++) {
         let tileObj = tileCollection[i];
         let code = tileObj.getAttribute('data-tile-code');
-        //console.log(code);
         let x = Number(tileObj.getAttribute('data-tile-x'));
         let y = Number(tileObj.getAttribute('data-tile-y'));
-        // if(i < 10) {
-        //    console.log(tileValues);
-        //}
         //Adding offset due to ruler
         //let row = tileContainer.children.item(tileValues.Y + 1);
         //let tile = row.children.item(tileValues.X + 1)
@@ -965,8 +946,6 @@ function previewPath(type) {
         // let coordY = Number(prompt("Y:", 0));
         let coordX = Number(document.getElementById("pathXInput").value);
         let coordY = Number(document.getElementById("pathYInput").value);
-        console.log(typeof(coordX), typeof(coordY));
-        console.log(Number.isInteger(coordX), Number.isInteger(coordY));
         if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
             alert("Invalid X coordinate, using 0"); 
             coordX = 0;
@@ -1031,7 +1010,6 @@ function previewPath(type) {
                 }
             }
             if(betterOptionFlag) {
-                // console.log("Better option found!", newSeq0, newSeq1);
                 clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
                 let index = clusterNumbers.indexOf(closestCluster);
                 if (index > -1) {
@@ -1055,7 +1033,6 @@ function previewPath(type) {
             }
         }
     }
-    // console.log(clusterSequence);
     // Draw circle on the initial point
     ctx.beginPath();
     ctx.arc(clusterSequence[0][3][0]*box + box/2, clusterSequence[0][3][1]*box + box/2, box, 0, 2 * Math.PI);
@@ -1095,12 +1072,6 @@ function previewPath(type) {
     THRESHOLD = threshold;
     drawPreviewGridLines(box, ctx);
 
-    //console.log(clusterNumbers);
-    // ctx.beginPath();
-    // ctx.moveTo(0,0);
-    // ctx.lineTo(200,100);
-    // ctx.strokeStyle = "red";
-    // ctx.stroke();
 }
 
 function assignClusters(stitchesList) {
@@ -1108,7 +1079,6 @@ function assignClusters(stitchesList) {
     let clusterCounter = 0;
     for(let i=0; i < stitchesList.length; i++) {
         let s = stitchesList[i];
-        // console.log("S", s);
         if(s.cluster == 0) {
             clusterCounter += 1;
             let neighborList = getNeighborStitches(s.X, s.Y, s.code);
@@ -1411,7 +1381,6 @@ function undo() {
         return;
     }
     let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(changeCounter)}]`);
-    // console.log(tiles);
     tiles.forEach(tile => {
         let origCode = tile.getAttribute('data-tile-orig-code');
         let origColor = getDMCValuesFromCode(origCode);
@@ -1489,8 +1458,6 @@ function undo() {
         tile.children.item(0).style.color = spanColor;
         tile.style.backgroundColor = color;
         
-        // console.log(origColor);
-        // console.log(tile.getAttribute('data-tile-change'));
     })
     changeCounter--;
     footNote.innerText = "Stitched: " + getStitched(); 
@@ -1626,7 +1593,6 @@ function updateTileColor() {
         let row = tileContainer.children[i];
         for(j = 1; j < row.children.length; j++) {
             let tile = row.children[j];
-            //console.log(tile.getAttribute('data-tile-code'));
             let code = tile.getAttribute('data-tile-code');
             let R = tile.getAttribute('data-tile-r');
             let G = tile.getAttribute('data-tile-g');
