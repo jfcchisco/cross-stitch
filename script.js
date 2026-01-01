@@ -78,9 +78,9 @@ function addChangesToJsonObject() {
                 tiles[i].removeAttribute('data-tile-orig-code');
                 let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
                 tiles[i].setAttribute('title', tileTitle);
-                console.log(stitch);
+                // console.log(stitch);
                 stitch.dmcCode = 'stitched';
-                console.log(stitch);
+                // console.log(stitch);
             }
         }
     })
@@ -225,7 +225,7 @@ function convertStitchesToFile(data) {
     for (const [index, stitch] of data.stitches.entries()) {
         code = stitch.dmcCode;
         id = stitch.Y * data.properties.width + stitch.X;
-        console.log(id);
+        // console.log(id);
         if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
             //Last stitch
             newStitches = newStitches.concat(id, "-", code);
