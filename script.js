@@ -8,6 +8,8 @@ const footNote = document.querySelector("[data-footnote]");
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
 let DEFAULT_HEIGHT = 20;
+let CLUSTER_SEQUENCE = []
+let THRESHOLD = 10;
 
 let box = 50; // Stitch width and height
 let i = 0;
@@ -76,9 +78,7 @@ function addChangesToJsonObject() {
                 tiles[i].removeAttribute('data-tile-orig-code');
                 let tileTitle = "STITCHED - X: " + X + " - Y: " + Y;
                 tiles[i].setAttribute('title', tileTitle);
-                console.log(stitch);
                 stitch.dmcCode = 'stitched';
-                console.log(stitch);
             }
         }
     })
@@ -172,12 +172,10 @@ function convertFileToStitches(data) {
 
     let stitches = data.stitches.split(",");
     let lastID = 0;
-    //console.log(stitches);
     
     for (let index in stitches) {
         let id = parseInt(stitches[index].split("-")[0]);
         let code = stitches[index].split("-")[1];
-        //console.log(stitches[index], id, code);
         while(lastID <= id) {
             let x = lastID % data.properties.width;
             let y = Math.floor(lastID / data.properties.width);
@@ -223,7 +221,6 @@ function convertStitchesToFile(data) {
     for (const [index, stitch] of data.stitches.entries()) {
         code = stitch.dmcCode;
         id = stitch.Y * data.properties.width + stitch.X;
-        console.log(id);
         if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
             //Last stitch
             newStitches = newStitches.concat(id, "-", code);
@@ -248,7 +245,7 @@ function drawGridLines() {
 
 function drawHorizontalLines() {
     for(let i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
-        let topRow = tileContainer.children.item((i*10));
+        let topRow = tileContainer.children.item((i*10)+1);
         // let botRow = tileContainer.children.item((i*10));
         // row-1 is the 10th row, all tiles should bottom border
         for (let j = 0; j < topRow.children.length; j++) {
@@ -292,7 +289,7 @@ function drawMiddleLines() {
     
     // Draw vertical middle line
     let midColIndex = Math.round(jsonObject.properties.width / 2)
-    for (let i = 0; i < rows.children.length; i++) {
+    for (let i = 1; i < rows.children.length; i++) {
         let curRow = rows.children.item(i);
         curRow.children.item(midColIndex).classList.add("midColLeft");
         curRow.children.item(midColIndex + 1).classList.add("midColRight");
@@ -467,7 +464,6 @@ function getDMCName(code) {
 function getDMCSymbol(code) {
     let dmcSymbol = "Unknown";
     jsonObject.colors.forEach(obj => {
-        //console.log(obj);
         if(obj.dmcCode === code) {
             dmcSymbol = obj.dmcSymbol;
         }
@@ -539,10 +535,8 @@ function getNeighborStitches(X, Y, code) {
         ];
 
         edges.forEach(edge => {
-            //console.log(edge.X, edge.Y);
             //let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
-            //console.log(tile);
-
+            
             if(getStitchColor(edge) == color2Paint) {
                 if(!IsCoordAlreadyThere(edge, foundStitches)) {
                     newStitches.push(edge);
@@ -657,6 +651,24 @@ function loadJSON(data) {
             tileContainer.removeChild(tileContainer.lastElementChild);
           }
     }
+
+    // Adding svg-container
+    const svgContainer = document.createElement("div");
+    svgContainer.setAttribute("class", "svg-container");
+    const newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+    /* const lineTest = document.createElementNS("http://www.w3.org/2000/svg", "line");
+    lineTest.setAttribute("x1", "50");
+    lineTest.setAttribute("y1", "50");
+    lineTest.setAttribute("x2", "180");
+    lineTest.setAttribute("y2", "180");
+    lineTest.setAttribute("stroke", "red");
+    lineTest.setAttribute("stroke-width", "2");
+    newSVG.setAttribute("viewBox", "0 0 200 200");
+    newSVG.setAttribute("width", "200");
+    newSVG.setAttribute("height", "200");
+    newSVG.append(lineTest); */
+    svgContainer.append(newSVG);
+    tileContainer.append(svgContainer);
     
     const rulerRow = rowTemplate.content.cloneNode(true).children[0];
     
@@ -808,7 +820,6 @@ function paintClick(tile, counter) {
 
     tile.style.backgroundColor = "rgba(0, 255, 0, 1)"
     tile.children.item(0).style.color = 'white';
-    //console.log(colorArray);
     tile.children.item(0).innerText = '×';
 
 }
@@ -836,11 +847,8 @@ function preview(data) {
     
     for (let i = 0; i < data.length; i++) {
         let tileValues = data[i];
-        // if(i < 10) {
-        //    console.log(tileValues);
-        //}
-        //Adding offset due to ruler
-        let row = tileContainer.children.item(tileValues.Y + 1);
+        //Adding offset due to ruler and svg-container
+        let row = tileContainer.children.item(tileValues.Y + 2);
         let tile = row.children.item(tileValues.X + 1)
 
         let backColor = tile.style.backgroundColor;
@@ -871,11 +879,9 @@ function previewPath(type) {
     // with the highlighted color and highlight flag activated
     const thresholdInput = document.getElementById('pathInput');
     const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
-    //console.log('Threshold value:', threshold);
     
     let highStitches = getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
-    // console.log(highStitches);
     let clusterNumbers = [];
     highStitches.forEach(s => {
         if(!clusterNumbers.includes(s.cluster)) {
@@ -895,7 +901,6 @@ function previewPath(type) {
 
     // Draw one rectangle as test
     let s = highStitches[1];
-    //console.log(box, s.X*box, s.Y*box, (s.X*box)+box, (s.Y*box)+box);
     ctx.fillStyle = "#000000";
     ctx.fillRect(10,10,20,20);
     //ctx.fillRect(s.X*box, s.Y*box, s.X*box+box, s.Y*box+box);
@@ -908,12 +913,8 @@ function previewPath(type) {
     for (let i = 0; i < tileCollection.length; i++) {
         let tileObj = tileCollection[i];
         let code = tileObj.getAttribute('data-tile-code');
-        //console.log(code);
         let x = Number(tileObj.getAttribute('data-tile-x'));
         let y = Number(tileObj.getAttribute('data-tile-y'));
-        // if(i < 10) {
-        //    console.log(tileValues);
-        //}
         //Adding offset due to ruler
         //let row = tileContainer.children.item(tileValues.Y + 1);
         //let tile = row.children.item(tileValues.X + 1)
@@ -945,8 +946,6 @@ function previewPath(type) {
         // let coordY = Number(prompt("Y:", 0));
         let coordX = Number(document.getElementById("pathXInput").value);
         let coordY = Number(document.getElementById("pathYInput").value);
-        console.log(typeof(coordX), typeof(coordY));
-        console.log(Number.isInteger(coordX), Number.isInteger(coordY));
         if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
             alert("Invalid X coordinate, using 0"); 
             coordX = 0;
@@ -1011,7 +1010,6 @@ function previewPath(type) {
                 }
             }
             if(betterOptionFlag) {
-                // console.log("Better option found!", newSeq0, newSeq1);
                 clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
                 let index = clusterNumbers.indexOf(closestCluster);
                 if (index > -1) {
@@ -1035,7 +1033,6 @@ function previewPath(type) {
             }
         }
     }
-    // console.log(clusterSequence);
     // Draw circle on the initial point
     ctx.beginPath();
     ctx.arc(clusterSequence[0][3][0]*box + box/2, clusterSequence[0][3][1]*box + box/2, box, 0, 2 * Math.PI);
@@ -1070,15 +1067,11 @@ function previewPath(type) {
         ctx.lineWidth = 2;
         ctx.stroke();
     })
-    
+    // Copy to global variable
+    CLUSTER_SEQUENCE = clusterSequence;
+    THRESHOLD = threshold;
     drawPreviewGridLines(box, ctx);
 
-    //console.log(clusterNumbers);
-    // ctx.beginPath();
-    // ctx.moveTo(0,0);
-    // ctx.lineTo(200,100);
-    // ctx.strokeStyle = "red";
-    // ctx.stroke();
 }
 
 function assignClusters(stitchesList) {
@@ -1086,7 +1079,6 @@ function assignClusters(stitchesList) {
     let clusterCounter = 0;
     for(let i=0; i < stitchesList.length; i++) {
         let s = stitchesList[i];
-        // console.log("S", s);
         if(s.cluster == 0) {
             clusterCounter += 1;
             let neighborList = getNeighborStitches(s.X, s.Y, s.code);
@@ -1138,6 +1130,107 @@ function getClosestClusterToPoint(clusterNumbers, sList, pointX, pointY) {
         }
     }
     return retCluster;
+}
+
+function drawSVG() {
+    if(CLUSTER_SEQUENCE.length === 0) {
+        return;
+    }
+    let tileWidth = document.getElementsByClassName("tile")[0].offsetWidth;
+    let svgContainer = document.getElementsByClassName("svg-container")[0].children[0];
+    // Delete all previous lines
+    while (svgContainer.lastElementChild) { 
+        svgContainer.removeChild(svgContainer.lastElementChild);
+    }
+
+    let svgWidth = tileWidth * (cols + 1);
+    let svgHeight = tileWidth * (rows + 1);
+    svgContainer.setAttribute("viewBox", `0 0 ${svgWidth} ${svgHeight}`);
+    svgContainer.setAttribute("width", svgWidth);
+    svgContainer.setAttribute("height", svgHeight);
+    /// Insert defs for arrowheads
+    const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+    const marker1 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker1.setAttribute("id", "arrow1");   
+    marker1.setAttribute("markerWidth", "10");
+    marker1.setAttribute("markerHeight", "10");
+    marker1.setAttribute("refX", "3.5");
+    marker1.setAttribute("refY", "2.5");
+    marker1.setAttribute("orient", "auto");
+    const arrowPath1 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath1.setAttribute("d", "M0,0 L0,5 L4,2.5 z");
+    arrowPath1.setAttribute("fill", "dodgerblue");
+    marker1.appendChild(arrowPath1);
+    defs.appendChild(marker1);
+
+    const marker2 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker2.setAttribute("id", "arrow2");   
+    marker2.setAttribute("markerWidth", "10");
+    marker2.setAttribute("markerHeight", "10");
+    marker2.setAttribute("refX", "3.5");
+    marker2.setAttribute("refY", "2.5");
+    marker2.setAttribute("orient", "auto");
+    const arrowPath2 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath2.setAttribute("d", "M0,0 L0,5 L4,2.5 z");
+    arrowPath2.setAttribute("fill", "orange");
+    marker2.appendChild(arrowPath2);
+    defs.appendChild(marker2);
+
+    const marker3 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker3.setAttribute("id", "arrow3");   
+    marker3.setAttribute("markerWidth", "10");
+    marker3.setAttribute("markerHeight", "10");
+    marker3.setAttribute("refX", "3.5");
+    marker3.setAttribute("refY", "2.5");
+    marker3.setAttribute("orient", "auto");
+    const arrowPath3 = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    arrowPath3.setAttribute("d", "M0,0 L0,5 L4,2.5 z");
+    arrowPath3.setAttribute("fill", "red");
+    marker3.appendChild(arrowPath3);
+    defs.appendChild(marker3);
+    
+    const marker4 = document.createElementNS("http://www.w3.org/2000/svg", "marker");
+    marker4.setAttribute("id", "circle");
+    marker4.setAttribute("markerWidth", "10");
+    marker4.setAttribute("markerHeight", "10");
+    marker4.setAttribute("refX", "5");
+    marker4.setAttribute("refY", "5");
+    marker4.setAttribute("orient", "auto");
+    const circlePath = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    circlePath.setAttribute("cx", "5");
+    circlePath.setAttribute("cy", "5");
+    circlePath.setAttribute("r", "5");
+    circlePath.setAttribute("fill", "red");
+    marker4.appendChild(circlePath);
+    defs.appendChild(marker4);
+
+    svgContainer.appendChild(defs);
+
+    let lineColor = "dodgerblue";
+    CLUSTER_SEQUENCE.forEach(cluster => {
+        let newLine = document.createElementNS("http://www.w3.org/2000/svg", "line");
+        
+        newLine.setAttribute("x1", (cluster[3][0]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("y1", (cluster[3][1]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("x2", (cluster[4][0]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("y2", (cluster[4][1]*tileWidth + tileWidth + tileWidth/2).toString());
+        newLine.setAttribute("stroke-width", "2");
+        newLine.setAttribute("marker-end", "url(#arrowhead)");
+        if(lineColor == "dodgerblue") {
+            lineColor = "orange";
+            newLine.setAttribute("marker-end", "url(#arrow2)");
+        }
+        else {
+            lineColor = "dodgerblue";
+            newLine.setAttribute("marker-end", "url(#arrow1)");
+        }
+        if(cluster[2] > THRESHOLD) {
+            lineColor = "red";
+            newLine.setAttribute("marker-end", "url(#arrow3)");
+        }
+        newLine.setAttribute("stroke", lineColor);
+        svgContainer.append(newLine); 
+    });
 }
 
 function drawPreviewGridLines(argBox, argCtx) {          
@@ -1288,7 +1381,6 @@ function undo() {
         return;
     }
     let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(changeCounter)}]`);
-    // console.log(tiles);
     tiles.forEach(tile => {
         let origCode = tile.getAttribute('data-tile-orig-code');
         let origColor = getDMCValuesFromCode(origCode);
@@ -1348,8 +1440,7 @@ function undo() {
 
             color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
         }
-        //tile.setAttribute('style', color)
-
+        
         // Update stitch count and restore original count
         let length = colorArray.length;
         
@@ -1367,8 +1458,6 @@ function undo() {
         tile.children.item(0).style.color = spanColor;
         tile.style.backgroundColor = color;
         
-        // console.log(origColor);
-        // console.log(tile.getAttribute('data-tile-change'));
     })
     changeCounter--;
     footNote.innerText = "Stitched: " + getStitched(); 
@@ -1387,8 +1476,8 @@ function updateColor(stitches) {
         let symbol = tileColor.symbol;
         let code = tileColor.dmcCode;
 
-        //+1 to compensate for the horizontal ruler
-        let row = tileContainer.children.item(tileValues.Y + 1);
+        //+2 to compensate for the horizontal ruler
+        let row = tileContainer.children.item(tileValues.Y + 2);
 
         //+1 to compensate for the vertical ruler
         let tile = row.children.item(tileValues.X + 1);
@@ -1500,11 +1589,10 @@ function updateColorAfterPaint(colors, origCode, total) {
 
 
 function updateTileColor() {
-    for(i = 1; i < tileContainer.children.length; i++) {
+    for(i = 2; i < tileContainer.children.length; i++) {
         let row = tileContainer.children[i];
         for(j = 1; j < row.children.length; j++) {
             let tile = row.children[j];
-            //console.log(tile.getAttribute('data-tile-code'));
             let code = tile.getAttribute('data-tile-code');
             let R = tile.getAttribute('data-tile-r');
             let G = tile.getAttribute('data-tile-g');
