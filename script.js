@@ -1,3 +1,8 @@
+import PatternLoader from "./load-pattern.js";
+
+// Add after the import statement
+const patternLoader = new PatternLoader();
+
 const tileContainer = document.getElementsByClassName("tile-container")[0];
 const colorTemplate = document.querySelector("[data-color-template]");
 const tileTemplate = document.querySelector("[data-tile-template]");
@@ -32,47 +37,42 @@ let jsonText = '';
 let jsonFiles = ['json/cubs.json', 'json/liverpool.json', 'json/japan.json', 'json/northern.json', 'json/cuphead.json', 'json/dino.json', 'json/amsterdam.json', 'json/african.json', 'json/messi.json'];
 let currIndex = 0;
 let jsonFile = jsonFiles[currIndex];
-let jsonObject = {}; // resulting object after fetch
-let originalObject = {};
-
-let changes = []; // after a paint event a change has to be added
+// Removed: let jsonObject = {}; // Now handled by PatternLoader
+// Removed: let originalObject = {}; // Now handled by PatternLoader
+// Removed: let changes = []; // Now handled by PatternLoader
 let colorArray = [];
-let changeCounter = 0;
+// Removed: let changeCounter = 0; // Now handled by PatternLoader
 var downloadURL = null;
 
-window.onload = function() {
-    fetch(jsonFile)
-        .then(response => {
-            return response.text();
-        })
-        .then((data) => {
-            data = JSON.parse(data);
-            loadJSON(data);
-    })
+window.onload = async function() {
+    try {
+        const pattern = await patternLoader.loadPattern(jsonFiles[currIndex]);
+        loadJSON(pattern);
+    } catch (error) {
+        console.error('Failed to load initial pattern:', error);
+    }
 }
 
-function loadNextFile() {
-    currIndex += 1;
-    if(currIndex >= jsonFiles.length) { currIndex = 0}
-
-    fetch(jsonFiles[currIndex])
-        .then(response => {
-            return response.text();
-        })
-        .then((data) => {
-            data = JSON.parse(data);
-            loadJSON(data);
-    })
+async function loadNextFile() {
+    try {
+        const pattern = await patternLoader.loadNextPattern();
+        loadJSON(pattern);
+    } catch (error) {
+        console.error('Failed to load next pattern:', error);
+    }
 }
 
 function addChangesToJsonObject() {
     let tiles = document.querySelectorAll('[data-tile-change]');
+    const currentPattern = patternLoader.getCurrentPattern();
 
-    jsonObject.stitches.forEach(stitch => {
+    currentPattern.stitches.forEach(stitch => {
         for(let i=0; i<tiles.length; i++) {
             let X = tiles[i].getAttribute('data-tile-x');
             let Y = tiles[i].getAttribute('data-tile-y');
             if(stitch.X == X && stitch.Y == Y) {
+                // Record the change in PatternLoader
+                patternLoader.recordChange(X, Y, 'stitched', stitch.dmcCode);
                 // After this the change will be undoable
                 tiles[i].removeAttribute('data-tile-change');
                 tiles[i].removeAttribute('data-tile-orig-code');
@@ -166,77 +166,6 @@ function clearActiveTool() {
    
 }
 
-function convertFileToStitches(data) {
-    let dataOut = {};
-    let newStitches = [];
-
-    let stitches = data.stitches.split(",");
-    let lastID = 0;
-    
-    for (let index in stitches) {
-        let id = parseInt(stitches[index].split("-")[0]);
-        let code = stitches[index].split("-")[1];
-        while(lastID <= id) {
-            let x = lastID % data.properties.width;
-            let y = Math.floor(lastID / data.properties.width);
-            newStitches.push({"X":x,"Y":y,"dmcCode":code});
-            lastID += 1;
-        }
-
-    }
-
-
-
-
-/*
-
-    // Change in json file format, this converts stitches to previous format
-    let stitchNumber = 0;
-    for(let y = 0; y < data.properties.height; y++) {
-        for(let x = 0; x < data.properties.width; x++) {
-            if(x > data.stitches[stitchNumber].X && y == data.stitches[stitchNumber].Y) {
-                // change in x direction
-                stitchNumber += 1; // this is dumb, for God's sake
-            }
-            else if(x == 0 && y > data.stitches[stitchNumber].Y) {
-                // change in y direction
-                stitchNumber += 1;
-            }
-            newStitches.push({"X":x,"Y":y,"dmcCode":data.stitches[stitchNumber].dmcCode});
-        }
-    }
-*/
-    dataOut.stitches = newStitches;
-    dataOut.properties = data.properties;
-    dataOut.colors = data.colors;
-
-    return dataOut;
-}
-
-function convertStitchesToFile(data) {
-    let dataOut = {};
-    let newStitches = "";
-    let id = "";
-    let code = "";
-    for (const [index, stitch] of data.stitches.entries()) {
-        code = stitch.dmcCode;
-        id = stitch.Y * data.properties.width + stitch.X;
-        if(stitch.X == data.properties.width - 1 && stitch.Y == data.properties.height - 1) {
-            //Last stitch
-            newStitches = newStitches.concat(id, "-", code);
-            continue;
-        }
-        else if(stitch.dmcCode != data.stitches[index + 1].dmcCode) {
-            newStitches = newStitches.concat(id, "-", code, ",");
-        }
-    }
-
-    dataOut.stitches = newStitches;
-    dataOut.properties = data.properties;
-    dataOut.colors = data.colors;
-    return dataOut;
-}
-
 function drawGridLines() {
     drawHorizontalLines();
     drawVerticalLines();
@@ -277,7 +206,8 @@ function drawVerticalLines() {
 function drawMiddleLines() {
     // Draw horizontal middle line
     let rows = document.getElementsByClassName("tile-container")[0];
-    let midRowIndex = Math.round(jsonObject.properties.height / 2)
+    const currentPattern = patternLoader.getCurrentPattern();
+    let midRowIndex = Math.round(currentPattern.properties.height / 2)
     let midRowTop = rows.children[midRowIndex];
     let midRowBot = rows.children[midRowIndex + 1];
     for (let i = 0; i < midRowTop.children.length; i ++) {
@@ -288,7 +218,7 @@ function drawMiddleLines() {
     }
     
     // Draw vertical middle line
-    let midColIndex = Math.round(jsonObject.properties.width / 2)
+    let midColIndex = Math.round(currentPattern.properties.width / 2)
     for (let i = 1; i < rows.children.length; i++) {
         let curRow = rows.children.item(i);
         curRow.children.item(midColIndex).classList.add("midColLeft");
@@ -341,8 +271,9 @@ function fillFlossUsage() {
 
     //Fill properties
     let par = document.getElementById("properties");
-    let hS = jsonObject.properties.height;
-    let wS = jsonObject.properties.width;
+    const currentPattern = patternLoader.getCurrentPattern();
+    let hS = currentPattern.properties.height;
+    let wS = currentPattern.properties.width;
     // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
     let hCM = (hS * 0.185).toFixed(1);
     let wCM = (wS * 0.185).toFixed(1);
@@ -453,7 +384,8 @@ function flossUsageOpen() {
 
 function getDMCName(code) {
     let dmcName = "Unknown";
-    jsonObject.colors.forEach(obj => {
+    const currentPattern = patternLoader.getCurrentPattern();
+    currentPattern.colors.forEach(obj => {
         if(obj.dmcCode === code) {
             dmcName = obj.dmcName;
         }
@@ -463,7 +395,8 @@ function getDMCName(code) {
 
 function getDMCSymbol(code) {
     let dmcSymbol = "Unknown";
-    jsonObject.colors.forEach(obj => {
+    const currentPattern = patternLoader.getCurrentPattern();
+    currentPattern.colors.forEach(obj => {
         if(obj.dmcCode === code) {
             dmcSymbol = obj.dmcSymbol;
         }
@@ -473,7 +406,8 @@ function getDMCSymbol(code) {
 
 function getDMCValuesFromCode(code) {
     let color2return = {};
-    jsonObject.colors.forEach(obj => {
+    const currentPattern = patternLoader.getCurrentPattern();
+    currentPattern.colors.forEach(obj => {
         if(obj.dmcCode === code) {
             color2return = obj;
         }
@@ -600,7 +534,7 @@ function highlight() {
 
 function IsCoordAlreadyThere (stitchCoord, array2Test) {
     let ret = false;
-    test = array2Test.map(coord => {
+    let test = array2Test.map(coord => {
         if(coord.X == stitchCoord.X && coord.Y == stitchCoord.Y) {
             ret = true;
         }
@@ -609,27 +543,15 @@ function IsCoordAlreadyThere (stitchCoord, array2Test) {
 }
 
 function loadJSON(data) {
-    // Convert stitches
-    data = convertFileToStitches(data);
+    // Data is already processed by PatternLoader
+    const processedData = data;
 
+    // Clear color array for fresh start
+    colorArray = [];
 
-    let toCheck = data.stitches[0]
-    if(!('X' in toCheck) || !('Y' in toCheck)) {
-        console.log('Invalid file');
-        return;
-    }
-    jsonObject = {};
-    originalObject = data; // keep as loaded
-    
-    // Clear all changes
-    changes = [];
-	colorArray = [];
-    
-    jsonObject = mergeChanges();
-
-    data.stitches.forEach(obj => {
+    processedData.stitches.forEach(obj => {
         colorArray = checkAndAddColor(colorArray, obj);
-    })
+    });
 
     colorArray.sort(function(a, b) {
         if(a.count < b.count) return 1;
@@ -641,9 +563,9 @@ function loadJSON(data) {
 
     //Create all divs for tiles
     //One additional because the array starts at zero
-    //Another additional 
-    cols = data.stitches[data.stitches.length-1].X+1
-    rows = data.stitches[data.stitches.length-1].Y+1
+    //Another additional
+    cols = processedData.stitches[processedData.stitches.length-1].X+1
+    rows = processedData.stitches[processedData.stitches.length-1].Y+1
 
     if(tileContainer.children.length > 0) {
         console.log("Removing all tiles...")
@@ -725,7 +647,7 @@ function loadJSON(data) {
         tileContainer.append(newRow)
     }
 
-    updateColor(data.stitches);
+    updateColor(processedData.stitches);
     drawGridLines();
 
     var body = document.body;
@@ -734,56 +656,17 @@ function loadJSON(data) {
     footNote.innerText = "Stitched: " + getStitched();  
 }
 
-function mergeChanges() {
-    //jsonObject = originalObject; // restore initial state
-    let newJson = {}
-    let newStitches = [];
-    let foundChange = false;
-
-    let originalStitches = originalObject.stitches;
-
-    for(let j = 0; j < originalStitches.length; j++) {
-        foundChange = false;
-        for(let i = 0; i < changes.length; i++) {
-            if(changes[i].X == originalStitches[j].X && changes[i].Y == originalStitches[j].Y && originalStitches[j].dmcCode != 0) {
-                //jsonObject[j] = changes[i];
-                newStitches.push(changes[i]);
-                foundChange = true;
-                //j++;
-
-            }
-        }
-
-        if(!foundChange) {
-            newStitches.push(originalStitches[j]);
-        }
-
-    }
-    
-    //fillFlossUsage();
-    newJson.stitches = newStitches;
-    newJson.colors = originalObject.colors;
-    newJson.properties = originalObject.properties;
-    return(newJson);
-    
-    
-}
-
-function openFile() {
-
-    let jsonContent = "";
-
+async function openFile() {
     let input = document.createElement('input');
     input.type = 'file';
-    input.onchange = _ => {
-    // you can use this method to get file and perform respective operations
-        let file =  input.files[0];
+    input.onchange = async (e) => {
+        const file = e.target.files[0];
         if(file) {
-            var reader = new FileReader();
-            reader.readAsText(file, "UTF-8");
-            reader.onload = function (evt) {
-                jsonContent = evt.target.result;
-                loadJSON(JSON.parse(jsonContent));
+            try {
+                const pattern = await patternLoader.loadFromFile(file);
+                loadJSON(pattern);
+            } catch (error) {
+                alert('Error loading file: ' + error.message);
             }
         }
     };
@@ -1258,7 +1141,8 @@ function previewClose() {
 }
 
 function previewOpen() {
-    preview(jsonObject.stitches);
+    const currentPattern = patternLoader.getCurrentPattern();
+    preview(currentPattern.stitches);
     let modal = document.getElementById("previewModal");
     modal.style.display = "block";
 }
@@ -1268,7 +1152,8 @@ function save() {
     addChangesToJsonObject();
     fillFlossUsage();
 
-    var text2write = JSON.stringify(convertStitchesToFile(jsonObject));
+    const exportData = patternLoader.exportPattern();
+    var text2write = JSON.stringify(exportData);
     
     var element = document.createElement('a');
 
@@ -1341,17 +1226,18 @@ function setHeight(newHeight) {
 }
 
 function tileClick(obj) {
-    x = Number(obj.getAttribute('data-tile-x'));
-    y = Number(obj.getAttribute('data-tile-y'));
-    code = obj.getAttribute('data-tile-code');
-    symbol = getDMCSymbol(code);
+    console.log(Number(obj.getAttribute('data-tile-x')));
+    const x = Number(obj.getAttribute('data-tile-x'));
+    const y = Number(obj.getAttribute('data-tile-y'));
+    const code = obj.getAttribute('data-tile-code');
+    const symbol = getDMCSymbol(code);
 
     if(paintFlag) {
 	    if(highFlag && highCode != code) {
             return
         }
-        changeCounter++;
-        paintClick(obj, changeCounter);
+        patternLoader.changeCounter++;
+        paintClick(obj, patternLoader.changeCounter);
         colorArray = updateColorAfterPaint(colorArray, code, 1);
         
     }
@@ -1360,8 +1246,8 @@ function tileClick(obj) {
 	    if(highFlag && highCode != code) {
             return;
         }
-        changeCounter++;
-        let total = bucketClick(obj, changeCounter);
+        patternLoader.changeCounter++;
+        let total = bucketClick(obj, patternLoader.changeCounter);
         colorArray = updateColorAfterPaint(colorArray, code, total);
     }
 
@@ -1377,10 +1263,10 @@ function tileClick(obj) {
 }
 
 function undo() {
-    if(changeCounter == 0) {
+    if(patternLoader.changeCounter == 0) {
         return;
     }
-    let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(changeCounter)}]`);
+    let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(patternLoader.changeCounter)}]`);
     tiles.forEach(tile => {
         let origCode = tile.getAttribute('data-tile-orig-code');
         let origColor = getDMCValuesFromCode(origCode);
@@ -1459,7 +1345,7 @@ function undo() {
         tile.style.backgroundColor = color;
         
     })
-    changeCounter--;
+    patternLoader.changeCounter--;
     footNote.innerText = "Stitched: " + getStitched(); 
 }
 
@@ -1691,12 +1577,31 @@ window.onclick = function(event) {
 window.addEventListener('resize', function(event) {
     
     var body = document.body;
-    html = document.documentElement;
-
     //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
 
     tileContainer.style.height = height+"px";
     
 }, true);
+
+// Expose functions to global scope for HTML onclick attributes
+window.openFile = openFile;
+window.save = save;
+window.flossUsageOpen = flossUsageOpen;
+window.highlight = highlight;
+window.paint = paint;
+window.bucket = bucket;
+window.previewOpen = previewOpen;
+window.undo = undo;
+window.zoomIn = zoomIn;
+window.zoomOut = zoomOut;
+window.zoomReset = zoomReset;
+window.highContrast = highContrast;
+window.loadNextFile = loadNextFile;
+window.flossUsageClose = flossUsageClose;
+window.previewClose = previewClose;
+window.previewPath = previewPath;
+window.drawSVG = drawSVG;
+window.selectColor = selectColor;
+window.tileClick = tileClick;
 
