@@ -6,15 +6,16 @@
 	},
 	"colors": [
 		{"dmcCode": "empty", "dmcName": "Empty", "R": 255, "G": 255, "B": 255, "symbol": ""},
+		{"dmcCode": "stitched", "dmcName": "Stitched", "R": 0, "G": 255, "B": 0, "symbol": "×"},
 		{"dmcCode": "3348", "dmcName": "Yellow Green Light", "R": 204, "G": 217, "B": 177, "symbol": "0"},
 		{"dmcCode": "977", "dmcName": "Golden Brown Light", "R": 220, "G": 156, "B": 86, "symbol": "1"},
 		{"dmcCode": "783", "dmcName": "Topaz Medium", "R": 206, "G": 145, "B": 36, "symbol": "2"},
 		{"dmcCode": "676", "dmcName": "Old Gold Light", "R": 229, "G": 206, "B": 151, "symbol": "3"},
-    {"dmcCode": "3053", "dmcName": "Green Gray", "R": 156, "G": 164, "B": 130, "symbol": "4"},
+    	{"dmcCode": "3053", "dmcName": "Green Gray", "R": 156, "G": 164, "B": 130, "symbol": "4"},
 		{"dmcCode": "3865", "dmcName": "Winter White", "R": 249, "G": 247, "B": 241, "symbol": "5"},
 		{"dmcCode": "3347", "dmcName": "Yellow Green Medium", "R": 113, "G": 147, "B": 92, "symbol": "6"},
 		{"dmcCode": "839", "dmcName": "Beige Brown Dark", "R": 103, "G": 85, "B": 65, "symbol": "7"},
 		{"dmcCode": "975", "dmcName": "Golden Brown Dark", "R": 145, "G": 79, "B": 18, "symbol": "8"},
-    {"dmcCode": "310", "dmcName": "Black", "R": 0, "G": 0, "B": 0, "symbol": "9"}
+    	{"dmcCode": "310", "dmcName": "Black", "R": 0, "G": 0, "B": 0, "symbol": "9"}
 	]
 }
