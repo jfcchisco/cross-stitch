@@ -603,21 +603,6 @@ function paint() {
     gridManager.activatePaint();
 }
 
-function paintClick(tile, counter) {
-    let origCode = tile.getAttribute('data-tile-code');
-    tile.setAttribute('data-tile-code', 'stitched');
-    tile.setAttribute('data-tile-orig-code', origCode);
-    tile.setAttribute('data-tile-r', 0);
-    tile.setAttribute('data-tile-g', 255);
-    tile.setAttribute('data-tile-b', 0);
-    tile.setAttribute('data-tile-change', counter);
-
-    tile.style.backgroundColor = "rgba(0, 255, 0, 1)"
-    tile.children.item(0).style.color = 'white';
-    tile.children.item(0).innerText = '×';
-
-}
-
 function preview(data) {
     let canvas = document.getElementById("canvas")
     let ctx = canvas.getContext('2d')
@@ -676,7 +661,6 @@ function previewPath(type) {
     
     let highStitches = gridManager.getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
-    console.log(highStitches);
     
     let clusterNumbers = [];
     highStitches.forEach(s => {
@@ -872,8 +856,6 @@ function previewPath(type) {
 
 function assignClusters(stitchesList) {
     // Assign clusters to a list of highlighted stitches
-    console.log("Assigning clusters...");
-    console.log(stitchesList);
     let clusterCounter = 0;
     for(let i=0; i < stitchesList.length; i++) {
         let s = stitchesList[i];
@@ -1126,40 +1108,6 @@ function setHeight(newHeight) {
 }
 
 function tileClick(obj) {
-    /*
-    console.log(Number(obj.getAttribute('data-tile-x')));
-    const x = Number(obj.getAttribute('data-tile-x'));
-    const y = Number(obj.getAttribute('data-tile-y'));
-    const code = obj.getAttribute('data-tile-code');
-    const symbol = getDMCSymbol(code);
-
-    if(paintFlag) {
-	    if(highFlag && highCode != code) {
-            return
-        }
-        patternLoader.changeCounter++;
-        paintClick(obj, patternLoader.changeCounter);
-        colorArray = updateColorAfterPaint(colorArray, code, 1);
-        
-    }
-
-    else if(bucketFlag) {
-	    if(highFlag && highCode != code) {
-            return;
-        }
-        patternLoader.changeCounter++;
-        let total = bucketClick(obj, patternLoader.changeCounter);
-        colorArray = updateColorAfterPaint(colorArray, code, total);
-    }
-
-    else if (highFlag) {
-        selectColor(code, symbol);
-
-    }
-    let tileX = x + 1;
-    let tileY = y + 1;
-    footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
-    */
     const x = Number(obj.getAttribute('data-tile-x'));
     const y = Number(obj.getAttribute('data-tile-y'));
     
@@ -1168,7 +1116,6 @@ function tileClick(obj) {
 }
 
 function undo() {
-    console.log(patternLoader.changeCounter);
     if(patternLoader.changeCounter == 0) {
         return;
     }
