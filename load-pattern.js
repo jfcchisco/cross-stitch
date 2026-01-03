@@ -207,7 +207,7 @@ class PatternLoader {
             dmcCode: dmcCode,
             originalCode: originalCode,
             timestamp: new Date(),
-            id: this.changeCounter++
+            id: this.changeCounter
         });
     }
 

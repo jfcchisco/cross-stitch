@@ -1,7 +1,6 @@
 import PatternLoader from "./load-pattern.js";
+import GridManager from "./grid-manager.js";
 
-// Add after the import statement
-const patternLoader = new PatternLoader();
 
 const tileContainer = document.getElementsByClassName("tile-container")[0];
 const colorTemplate = document.querySelector("[data-color-template]");
@@ -9,6 +8,10 @@ const tileTemplate = document.querySelector("[data-tile-template]");
 const rowTemplate = document.querySelector("[data-row-template]");
 const colorContainer = document.querySelector("[data-color-container]");
 const footNote = document.querySelector("[data-footnote]");
+
+const patternLoader = new PatternLoader();
+const gridManager = new GridManager(tileContainer, patternLoader);
+
 
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
@@ -22,10 +25,6 @@ let j = 0;
 let cols = 0;
 let rows = 0;
 
-let paintFlag = false;
-let highFlag = false;
-let bucketFlag = false;
-let contrastFlag = false;
 let zoomResetFlag = false;
 let highCode = 0;
 let highSymbol = "";
@@ -40,8 +39,8 @@ let jsonFile = jsonFiles[currIndex];
 // Removed: let jsonObject = {}; // Now handled by PatternLoader
 // Removed: let originalObject = {}; // Now handled by PatternLoader
 // Removed: let changes = []; // Now handled by PatternLoader
-let colorArray = [];
-// Removed: let changeCounter = 0; // Now handled by PatternLoader
+// Removed: let colorArray = []; // Now handled by GridManager
+let changeCounter = 0; // Now handled by PatternLoader
 var downloadURL = null;
 
 window.onload = async function() {
@@ -86,21 +85,7 @@ function addChangesToJsonObject() {
 }
 
 function bucket() {
-    clearActiveTool();
-    bucketFlag = !bucketFlag;
-
-    if(bucketFlag) {
-        document.getElementById("bucketTool").classList.add("activeTool");
-    }
-
-    if(highFlag) {
-        document.getElementById("highTool").classList.add("activeTool");
-    }
-
-    //clear other flags
-    // highFlag = false;
-    paintFlag = false;
-    //updateColor(jsonObject.stitches);
+    gridManager.activateBucket();
 }
 
 function bucketClick(obj, counter) {
@@ -129,34 +114,7 @@ function bucketClick(obj, counter) {
     return(stitches2Paint.length);
 }
 
-function checkAndAddColor (colors, line) 
-{
-    let length = colors.length;
-    let found = false;
-    
-    for (let i = 0; i < length; i ++) {
-        
-        if(line.dmcCode == colors[i].code) {
-            found = true;
-            colors[i].count = colors[i].count + 1;
-        }
-    }
-    
-    if(!found) {
-        let newColor = getDMCValuesFromCode(line.dmcCode)
-        colors.push( { 
-            "code": line.dmcCode,
-            "name": newColor.dmcName,
-            "R": newColor.R,
-            "G": newColor.G,
-            "B": newColor.B,
-            "symbol": newColor.symbol,
-            "count": 1
-        } );
-    }
-    return colors;
-
-}
+// Removed: checkAndAddColor function - now handled by GridManager
 
 function clearActiveTool() {
     const collection = document.getElementsByClassName("toolback");
@@ -239,6 +197,9 @@ function fillFlossUsage() {
     while(colorContainer.lastElementChild) {
         colorContainer.removeChild(colorContainer.lastElementChild);
     }
+    
+    // Get color array from GridManager
+    const colorArray = gridManager.getColorArray();
     
     //Count already stitched
     let stitched = 0;
@@ -336,7 +297,7 @@ function fillFlossUsage() {
 
 
         // Fill color selectors
-        if(color.code!="empty") {
+        if(color.code!="empty" && color.count > 0) {
             const colorDiv = colorTemplate.content.cloneNode(true).children[0];
             const colorBack = colorDiv.querySelector("[data-color-back]");
             const colorFront = colorDiv.querySelector("[data-color]");
@@ -364,8 +325,8 @@ function fillFlossUsage() {
         }
     })
     
-    if (highFlag) {
-        selectColor(highCode, highSymbol);
+    if (gridManager.highFlag) {
+        selectColor(gridManager.highlightedColor, gridManager.highlightedSymbol);
     }
 
     modalList.appendChild(table);
@@ -494,16 +455,11 @@ function getStitchColor(stitchCoord) {
 }
 
 function getStitched() {
-    let stitched = 0;
-    colorArray.forEach(obj => {
-        if(obj.code == "stitched") {
-            stitched = obj.count;
-        }
-    })
-    return(stitched);
+    return gridManager.getStitchedCount();
 }
 
 function highContrast() {
+    /*
     contrastFlag = !contrastFlag;
 
     if(contrastFlag) {
@@ -515,21 +471,12 @@ function highContrast() {
 
     //updateColor(jsonObject.stitches);
     updateTileColor();
+    */
+    gridManager.activateHighContrast();
 }
 
 function highlight() {
-    clearActiveTool();
-    highFlag = !highFlag;
-    if(highFlag) {
-        document.getElementById("highTool").classList.add("activeTool");
-    }
-
-    //clear other flags
-    paintFlag = false;
-    bucketFlag = false;
-
-    //updateColor(jsonObject.stitches);
-    updateTileColor();
+    gridManager.activateHighlight(highCode);
 }
 
 function IsCoordAlreadyThere (stitchCoord, array2Test) {
@@ -546,19 +493,8 @@ function loadJSON(data) {
     // Data is already processed by PatternLoader
     const processedData = data;
 
-    // Clear color array for fresh start
-    colorArray = [];
-
-    processedData.stitches.forEach(obj => {
-        colorArray = checkAndAddColor(colorArray, obj);
-    });
-
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-
+    // Initialize color array in GridManager
+    gridManager.initializeColorArray(processedData);
     fillFlossUsage();
 
     //Create all divs for tiles
@@ -578,17 +514,6 @@ function loadJSON(data) {
     const svgContainer = document.createElement("div");
     svgContainer.setAttribute("class", "svg-container");
     const newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    /* const lineTest = document.createElementNS("http://www.w3.org/2000/svg", "line");
-    lineTest.setAttribute("x1", "50");
-    lineTest.setAttribute("y1", "50");
-    lineTest.setAttribute("x2", "180");
-    lineTest.setAttribute("y2", "180");
-    lineTest.setAttribute("stroke", "red");
-    lineTest.setAttribute("stroke-width", "2");
-    newSVG.setAttribute("viewBox", "0 0 200 200");
-    newSVG.setAttribute("width", "200");
-    newSVG.setAttribute("height", "200");
-    newSVG.append(lineTest); */
     svgContainer.append(newSVG);
     tileContainer.append(svgContainer);
     
@@ -648,6 +573,7 @@ function loadJSON(data) {
     }
 
     updateColor(processedData.stitches);
+    //gridManager.refreshGridDisplay();
     drawGridLines();
 
     var body = document.body;
@@ -674,22 +600,7 @@ async function openFile() {
 }
 
 function paint() {
-    clearActiveTool();
-    paintFlag = !paintFlag;
-
-    if(paintFlag) {
-        document.getElementById("paintTool").classList.add("activeTool");
-    }
-
-    if(highFlag) {
-        document.getElementById("highTool").classList.add("activeTool");
-    }
-
-    //clear other flags
-    // highFlag = false;
-    bucketFlag = false;
-
-    //updateColor(jsonObject.stitches);
+    gridManager.activatePaint();
 }
 
 function paintClick(tile, counter) {
@@ -751,7 +662,7 @@ function preview(data) {
     let inputFields = document.getElementsByClassName("inputFields")[0];
     inputFields.style.display = "none";
     createPathDiv.style.display = "none";
-    if(highFlag && highCode != 0) {
+    if(gridManager.highFlag && gridManager.highlightedColor != 0) {
         createPathDiv.style.display = "grid";
         inputFields.style.display = "grid";
     }
@@ -763,8 +674,10 @@ function previewPath(type) {
     const thresholdInput = document.getElementById('pathInput');
     const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
     
-    let highStitches = getHighlightedStitches(highCode);
+    let highStitches = gridManager.getHighlightedStitches(highCode);
     highStitches = assignClusters(highStitches);
+    console.log(highStitches);
+    
     let clusterNumbers = [];
     highStitches.forEach(s => {
         if(!clusterNumbers.includes(s.cluster)) {
@@ -803,7 +716,7 @@ function previewPath(type) {
         //let tile = row.children.item(tileValues.X + 1)
 
         //let backColor = tile.style.backgroundColor;
-        if(code == highCode) {
+        if(code == gridManager.highlightedColor) {
             ctx.fillStyle = "#000000";;
             ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
         }
@@ -959,16 +872,18 @@ function previewPath(type) {
 
 function assignClusters(stitchesList) {
     // Assign clusters to a list of highlighted stitches
+    console.log("Assigning clusters...");
+    console.log(stitchesList);
     let clusterCounter = 0;
     for(let i=0; i < stitchesList.length; i++) {
         let s = stitchesList[i];
         if(s.cluster == 0) {
             clusterCounter += 1;
-            let neighborList = getNeighborStitches(s.X, s.Y, s.code);
+            let neighborList = gridManager.getConnectedTiles(s.X, s.Y, s.code);
             for(let j=0; j<neighborList.length; j++) {
                 for(let k=0; k<stitchesList.length; k++) {
                     let s2 = stitchesList[k];
-                    if(s2.X == neighborList[j].X && s2.Y == neighborList[j].Y) {
+                    if(s2.X == neighborList[j].x && s2.Y == neighborList[j].y) {
                         stitchesList[k].cluster = clusterCounter;
                     }
                 }
@@ -1190,22 +1105,7 @@ function save() {
 }
 
 function selectColor(color, symbol) {
-    const collection = document.getElementsByClassName("colorback");
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].classList.remove("activeColor");
-    }
-
-    for (let i = 0; i < collection.length; i++) {
-        if(collection[i].children[0].children[0].children[0].innerText == symbol) {
-            collection[i].classList.add("activeColor");
-        }
-    }
-
-    highCode = color;
-    highSymbol = symbol;
-    if(highFlag) {
-        updateTileColor();
-    }
+    gridManager.selectColor(color, symbol);
 
 
     footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
@@ -1226,6 +1126,7 @@ function setHeight(newHeight) {
 }
 
 function tileClick(obj) {
+    /*
     console.log(Number(obj.getAttribute('data-tile-x')));
     const x = Number(obj.getAttribute('data-tile-x'));
     const y = Number(obj.getAttribute('data-tile-y'));
@@ -1258,11 +1159,16 @@ function tileClick(obj) {
     let tileX = x + 1;
     let tileY = y + 1;
     footNote.innerText = "X: " + tileX + ", Y: " + tileY + ", Code: " + code + " - " + getDMCName(code) + " | Stitched: " + getStitched();
-
+    */
+    const x = Number(obj.getAttribute('data-tile-x'));
+    const y = Number(obj.getAttribute('data-tile-y'));
+    
+    gridManager.handleTileClick(x, y);
 
 }
 
 function undo() {
+    console.log(patternLoader.changeCounter);
     if(patternLoader.changeCounter == 0) {
         return;
     }
@@ -1287,14 +1193,14 @@ function undo() {
         let color = 'white';
         
         //Check for high contrast
-        if(contrastFlag) {
+        if(gridManager.contrastFlag) {
             if(code == "stitched") {
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
                 color = "rgba(" + R + ", " + G + ", " + B + ",1)";
             }
             
             else {
-                if(highFlag) {
+                if(gridManager.highFlag) {
                     if(highCode == code) {
                         spanColor = 'white';
                         color = 'black';
@@ -1314,7 +1220,7 @@ function undo() {
         else {
             spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
         
-            if(highFlag && highCode != code) {
+            if(gridManager.highFlag && gridManager.highlightedColor != code) {
                 alpha = 0.25;
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
             }
@@ -1328,16 +1234,16 @@ function undo() {
         }
         
         // Update stitch count and restore original count
-        let length = colorArray.length;
+        let length = gridManager.colorArray.length;
         
         for (let i = 0; i < length; i ++) {
             
-            if(origCode == colorArray[i].code) {
-                colorArray[i].count = colorArray[i].count + 1;
+            if(origCode == gridManager.colorArray[i].code) {
+                gridManager.colorArray[i].count = gridManager.colorArray[i].count + 1;
             }
 
-            if(colorArray[i].code == 'stitched') {
-                colorArray[i].count = colorArray[i].count - 1;
+            if(gridManager.colorArray[i].code == 'stitched') {
+                gridManager.colorArray[i].count = gridManager.colorArray[i].count - 1;
             }
         }
         
@@ -1372,14 +1278,14 @@ function updateColor(stitches) {
         let spanColor = 'black';
         let color = 'white';
         //Check for high contrast
-        if(contrastFlag) {
+        if(gridManager.contrastFlag) {
             if(code == "stitched") {
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
                 color = "rgba(" + R + ", " + G + ", " + B + ",1)";
             }
             
             else {
-                if(highFlag) {
+                if(gridManager.highFlag) {
                     if(highCode == code) {
                         spanColor = 'white';
                         color = 'black';
@@ -1399,7 +1305,7 @@ function updateColor(stitches) {
         else {
             spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
 		
-            if(highFlag && highCode != code) {
+            if(gridManager.highFlag && gridManager.highlightedColor != code) {
                 alpha = 0.25;
                 spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
             }
@@ -1442,38 +1348,9 @@ function updateColor(stitches) {
     }
 }
 
-function updateColorAfterPaint(colors, origCode, total) {
-    let length = colors.length;
-    let found = false;
-    
-    for (i = 0; i < length; i ++) {
-        
-        if(origCode == colors[i].code) {
-            colors[i].count = colors[i].count - total;
-        }
+// Removed: updateColorAfterPaint function - now handled by GridManager
 
-        if(colors[i].code == 'stitched') {
-            found = true;
-            colors[i].count = colors[i].count + total;
-        }
-    }
-
-    if(!found) {
-        colors.push( { 
-            "code": 'stitched',
-            "name": 'STITCHED',
-            "R": 0,
-            "G": 255,
-            "B": 0,
-            "symbol": "×",
-            "count": total
-        } );
-    }
-    return colors;
-
-}
-
-
+/*
 function updateTileColor() {
     for(i = 2; i < tileContainer.children.length; i++) {
         let row = tileContainer.children[i];
@@ -1535,6 +1412,7 @@ function updateTileColor() {
     }
 
 }
+*/
 
 function zoomIn() {
     const collection = document.getElementsByClassName("tile");
