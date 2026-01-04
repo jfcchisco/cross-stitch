@@ -1,17 +1,17 @@
 import PatternLoader from "./load-pattern.js";
 import GridManager from "./grid-manager.js";
-
+import UIManager from "./ui-manager.js";
 
 const tileContainer = document.getElementsByClassName("tile-container")[0];
 const colorTemplate = document.querySelector("[data-color-template]");
 const tileTemplate = document.querySelector("[data-tile-template]");
 const rowTemplate = document.querySelector("[data-row-template]");
 const colorContainer = document.querySelector("[data-color-container]");
-const footNote = document.querySelector("[data-footnote]");
 
 const patternLoader = new PatternLoader();
-const gridManager = new GridManager(tileContainer, patternLoader);
-
+const uiManager = new UIManager();
+const gridManager = new GridManager(tileContainer, patternLoader, uiManager);
+uiManager.getGridManager(gridManager);
 
 let MIN_HEIGHT = 10;
 let MAX_HEIGHT = 50;
@@ -20,19 +20,12 @@ let CLUSTER_SEQUENCE = []
 let THRESHOLD = 10;
 
 let box = 50; // Stitch width and height
-let i = 0;
-let j = 0;
 let cols = 0;
 let rows = 0;
 
 let zoomResetFlag = false;
 let highCode = 0;
-let highSymbol = "";
-let alpha = 1;
 
-let firstLoop = true;
-
-let jsonText = '';
 let jsonFiles = ['json/cubs.json', 'json/liverpool.json', 'json/japan.json', 'json/northern.json', 'json/cuphead.json', 'json/dino.json', 'json/amsterdam.json', 'json/african.json', 'json/messi.json'];
 let currIndex = 0;
 let jsonFile = jsonFiles[currIndex];
@@ -40,7 +33,6 @@ let jsonFile = jsonFiles[currIndex];
 // Removed: let originalObject = {}; // Now handled by PatternLoader
 // Removed: let changes = []; // Now handled by PatternLoader
 // Removed: let colorArray = []; // Now handled by GridManager
-let changeCounter = 0; // Now handled by PatternLoader
 var downloadURL = null;
 
 window.onload = async function() {
@@ -82,106 +74,6 @@ function addChangesToJsonObject() {
         }
     })
     return;
-}
-
-function bucket() {
-    gridManager.activateBucket();
-}
-
-function bucketClick(obj, counter) {
-    let x = obj.getAttribute('data-tile-x');
-    let y = obj.getAttribute('data-tile-y');
-    let code = obj.getAttribute('data-tile-code');
-    let stitches2Paint = getNeighborStitches(Number(x), Number(y), code);
-    if(stitches2Paint.length > 100) {
-        let message = stitches2Paint.length + " stitches will be painted, are you sure?"
-        if(confirm(message)) {
-            stitches2Paint.forEach(stitch => {
-                let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
-                paintClick(tile, counter);
-            })
-        }
-        else {
-            return 0;
-        }
-    }
-    else {
-        stitches2Paint.forEach(stitch => {
-            let tile = document.querySelector(`[data-tile-x=${CSS.escape(stitch.X)}][data-tile-y=${CSS.escape(stitch.Y)}]`);
-            paintClick(tile, counter);
-        })
-    }
-    return(stitches2Paint.length);
-}
-
-// Removed: checkAndAddColor function - now handled by GridManager
-
-function clearActiveTool() {
-    const collection = document.getElementsByClassName("toolback");
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].classList.remove("activeTool");
-    }
-   
-}
-
-function drawGridLines() {
-    drawHorizontalLines();
-    drawVerticalLines();
-    drawMiddleLines();
-}
-
-function drawHorizontalLines() {
-    for(let i = 1; i <= Math.floor(tileContainer.children.length/10); i++) {
-        let topRow = tileContainer.children.item((i*10)+1);
-        // let botRow = tileContainer.children.item((i*10));
-        // row-1 is the 10th row, all tiles should bottom border
-        for (let j = 0; j < topRow.children.length; j++) {
-            topRow.children.item(j).classList.add("horBorder");
-            //topRow.children.item(j).style.borderBottom = "2px solid black";
-        }
-    }
-}
-
-function drawVerticalLines() {
-    for (let i = 0; i < tileContainer.children.length; i++) {
-        //Get 9th n-element of each row and add 
-        let row = tileContainer.children.item(i);
-        for (let j = 1; j <= row.children.length; j++) {
-            if (j % 10 == 0) {
-                row.children.item(j).classList.add("borderRight");
-                //row.children.item(j).style.borderRight = "1px solid black";
-                //if(j<row.children.length-1) {
-                //    row.children.item(j+1).style.borderLeft = "1px solid black";
-                //}
-            }
-            if (j % 10 == 1 && j < row.children.length-1 && j > 1) {
-                row.children.item(j).classList.add("borderLeft");
-            }
-        }
-    }
-}
-
-function drawMiddleLines() {
-    // Draw horizontal middle line
-    let rows = document.getElementsByClassName("tile-container")[0];
-    const currentPattern = patternLoader.getCurrentPattern();
-    let midRowIndex = Math.round(currentPattern.properties.height / 2)
-    let midRowTop = rows.children[midRowIndex];
-    let midRowBot = rows.children[midRowIndex + 1];
-    for (let i = 0; i < midRowTop.children.length; i ++) {
-        midRowTop.children.item(i).classList.add("midRowTop");
-    }
-    for (let i = 0; i < midRowBot.children.length; i ++) {
-        midRowBot.children.item(i).classList.add("midRowBot");
-    }
-    
-    // Draw vertical middle line
-    let midColIndex = Math.round(currentPattern.properties.width / 2)
-    for (let i = 1; i < rows.children.length; i++) {
-        let curRow = rows.children.item(i);
-        curRow.children.item(midColIndex).classList.add("midColLeft");
-        curRow.children.item(midColIndex + 1).classList.add("midColRight");
-    }
 }
 
 function fillFlossUsage() {
@@ -343,29 +235,7 @@ function flossUsageOpen() {
     modal.style.display = "block";
 }
 
-function getDMCName(code) {
-    let dmcName = "Unknown";
-    const currentPattern = patternLoader.getCurrentPattern();
-    currentPattern.colors.forEach(obj => {
-        if(obj.dmcCode === code) {
-            dmcName = obj.dmcName;
-        }
-    })
-    return dmcName;
-}
-
-function getDMCSymbol(code) {
-    let dmcSymbol = "Unknown";
-    const currentPattern = patternLoader.getCurrentPattern();
-    currentPattern.colors.forEach(obj => {
-        if(obj.dmcCode === code) {
-            dmcSymbol = obj.dmcSymbol;
-        }
-    })
-    return dmcSymbol;
-}
-
-function getDMCValuesFromCode(code) {
+/* function getDMCValuesFromCode(code) {
     let color2return = {};
     const currentPattern = patternLoader.getCurrentPattern();
     currentPattern.colors.forEach(obj => {
@@ -374,120 +244,7 @@ function getDMCValuesFromCode(code) {
         }
     })
     return color2return;
-}
-
-function getHighlightedStitches(code) {
-    let foundStitches = [];
-    let tileCollection = document.getElementsByClassName('tile');
-    for (let i = 0; i < tileCollection.length; i++) {
-        let obj = tileCollection[i];
-        let tileCode = obj.getAttribute('data-tile-code');
-        let tileX = Number(obj.getAttribute('data-tile-x'));
-        let tileY = Number(obj.getAttribute('data-tile-y'));
-        if(tileCode == code) {
-            foundStitches.push({"X":tileX, "Y":tileY, "code":tileCode, "cluster":0});
-        }
-    }
-    return foundStitches;
-}
-
-function getNeighborStitches(X, Y, code) {
-    //array of coordinates to return for painting    
-    let foundStitches = [];
-    //array to iterate last element, get new stitches that are not already in found and pop it
-    let newStitches = [];
-    let color2Paint = code;
-
-    if(color2Paint == 'stitched' || color2Paint == '0') {
-        return foundStitches;
-    }
-    
-    //add the clicked coordinates
-    newStitches.push(
-        {"X": X, 
-        "Y": Y
-    });
-
-    foundStitches.push(
-        {"X": X, 
-        "Y": Y
-    });
-    
-
-    // check four stitches that share an edge with the clicked
-    while(newStitches.length > 0) {
-        //check last element of array
-        let stitch2Test = newStitches[newStitches.length-1];
-        //and remove it
-        newStitches.pop();
-
-        // check 4 edges of the stitch to test
-        let edges = [
-            {X:stitch2Test.X, Y:stitch2Test.Y-1},
-            {X:stitch2Test.X, Y:stitch2Test.Y+1},
-            {X:stitch2Test.X-1, Y:stitch2Test.Y},
-            {X:stitch2Test.X+1, Y:stitch2Test.Y}
-        ];
-
-        edges.forEach(edge => {
-            //let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
-            
-            if(getStitchColor(edge) == color2Paint) {
-                if(!IsCoordAlreadyThere(edge, foundStitches)) {
-                    newStitches.push(edge);
-                    foundStitches.push(edge);
-                }
-            }
-        });
-    }
-    return foundStitches;
-}
-
-function getStitchColor(stitchCoord) {
-    let X = stitchCoord.X;
-    let Y = stitchCoord.Y;
-    let tile = document.querySelector(`[data-tile-x=${CSS.escape(X)}][data-tile-y=${CSS.escape(Y)}]`);
-    if(tile != null) {
-        return tile.getAttribute('data-tile-code');
-    }
-    return -1
- 
-}
-
-function getStitched() {
-    return gridManager.getStitchedCount();
-}
-
-function highContrast() {
-    /*
-    contrastFlag = !contrastFlag;
-
-    if(contrastFlag) {
-        document.getElementById("contrastTool").classList.add("activeTool");
-    }
-    else {
-        document.getElementById("contrastTool").classList.remove("activeTool");
-    }
-
-    //updateColor(jsonObject.stitches);
-    updateTileColor();
-    */
-    gridManager.activateHighContrast();
-}
-
-function highlight() {
-    gridManager.activateHighlight(highCode);
-}
-
-function IsCoordAlreadyThere (stitchCoord, array2Test) {
-    let ret = false;
-    let test = array2Test.map(coord => {
-        if(coord.X == stitchCoord.X && coord.Y == stitchCoord.Y) {
-            ret = true;
-        }
-    })
-    return ret;
-}
+} */
 
 function loadJSON(data) {
     // Data is already processed by PatternLoader
@@ -503,13 +260,8 @@ function loadJSON(data) {
     cols = processedData.stitches[processedData.stitches.length-1].X+1
     rows = processedData.stitches[processedData.stitches.length-1].Y+1
 
-    if(tileContainer.children.length > 0) {
-        console.log("Removing all tiles...")
-        while (tileContainer.lastElementChild) { 
-            tileContainer.removeChild(tileContainer.lastElementChild);
-          }
-    }
-
+    gridManager.initializeGrid(cols, rows);
+/* 
     // Adding svg-container
     const svgContainer = document.createElement("div");
     svgContainer.setAttribute("class", "svg-container");
@@ -571,15 +323,17 @@ function loadJSON(data) {
         }
         tileContainer.append(newRow)
     }
-
-    updateColor(processedData.stitches);
+ */
+    //updateColor(processedData.stitches);
     //gridManager.refreshGridDisplay();
-    drawGridLines();
+    gridManager.updateTileAttributes(processedData.stitches);
+    gridManager.refreshGridDisplay();
+    gridManager.drawGridLines();
 
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
-    footNote.innerText = "Stitched: " + getStitched();  
+    uiManager.updateFootnote("Loaded pattern"); 
 }
 
 async function openFile() {
@@ -597,10 +351,6 @@ async function openFile() {
         }
     };
     input.click();
-}
-
-function paint() {
-    gridManager.activatePaint();
 }
 
 function preview(data) {
@@ -1088,9 +838,7 @@ function save() {
 
 function selectColor(color, symbol) {
     gridManager.selectColor(color, symbol);
-
-
-    footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
+    // footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
      
 }
 
@@ -1110,99 +858,11 @@ function setHeight(newHeight) {
 function tileClick(obj) {
     const x = Number(obj.getAttribute('data-tile-x'));
     const y = Number(obj.getAttribute('data-tile-y'));
-    
     gridManager.handleTileClick(x, y);
 
 }
 
-function undo() {
-    if(patternLoader.changeCounter == 0) {
-        return;
-    }
-    let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(patternLoader.changeCounter)}]`);
-    tiles.forEach(tile => {
-        let origCode = tile.getAttribute('data-tile-orig-code');
-        let origColor = getDMCValuesFromCode(origCode);
-        let R = origColor.R;
-        let G = origColor.G;
-        let B = origColor.B;
-
-        tile.children.item(0).innerText = origColor.symbol;
-        tile.removeAttribute('data-tile-change');
-        tile.setAttribute('data-tile-code', origColor.dmcCode);
-        tile.setAttribute('data-tile-r', origColor.R);
-        tile.setAttribute('data-tile-g', origColor.G);
-        tile.setAttribute('data-tile-b', origColor.B);
-        
-        let code = origCode;
-        let alpha = 1;
-        let spanColor = 'black';
-        let color = 'white';
-        
-        //Check for high contrast
-        if(gridManager.contrastFlag) {
-            if(code == "stitched") {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-            }
-            
-            else {
-                if(gridManager.highFlag) {
-                    if(highCode == code) {
-                        spanColor = 'white';
-                        color = 'black';
-                    }
-                    else {
-                        alpha = 0.25;
-                        spanColor = 'silver';
-                    }
-                }
-            }
-            
-            
-
-        }
-
-
-        else {
-            spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-        
-            if(gridManager.highFlag && gridManager.highlightedColor != code) {
-                alpha = 0.25;
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
-            }
-            if(code == "stitched") {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-                alpha = 1;
-            }
-
-            color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
-        }
-        
-        // Update stitch count and restore original count
-        let length = gridManager.colorArray.length;
-        
-        for (let i = 0; i < length; i ++) {
-            
-            if(origCode == gridManager.colorArray[i].code) {
-                gridManager.colorArray[i].count = gridManager.colorArray[i].count + 1;
-            }
-
-            if(gridManager.colorArray[i].code == 'stitched') {
-                gridManager.colorArray[i].count = gridManager.colorArray[i].count - 1;
-            }
-        }
-        
-        tile.children.item(0).style.color = spanColor;
-        tile.style.backgroundColor = color;
-        
-    })
-    patternLoader.changeCounter--;
-    footNote.innerText = "Stitched: " + getStitched(); 
-}
-
-function updateColor(stitches) {
+/* function updateColor(stitches) {
     for (let i = 0; i < stitches.length; i++) {
         let tileValues = stitches[i];
 
@@ -1282,7 +942,7 @@ function updateColor(stitches) {
         tile.children.item(0).innerText = symbol;
 
         tile.children.item(0).style.color = spanColor;
-        footNote.innerText = "Stitched: " + getStitched();  
+        // footNote.innerText = "Stitched: " + getStitched();  
 
         // Add data attributes
         tile.setAttribute('data-tile-x', tileValues.X);
@@ -1293,73 +953,7 @@ function updateColor(stitches) {
         tile.setAttribute('data-tile-b', B);
 
     }
-}
-
-// Removed: updateColorAfterPaint function - now handled by GridManager
-
-/*
-function updateTileColor() {
-    for(i = 2; i < tileContainer.children.length; i++) {
-        let row = tileContainer.children[i];
-        for(j = 1; j < row.children.length; j++) {
-            let tile = row.children[j];
-            let code = tile.getAttribute('data-tile-code');
-            let R = tile.getAttribute('data-tile-r');
-            let G = tile.getAttribute('data-tile-g');
-            let B = tile.getAttribute('data-tile-b');
-            let alpha = 1;
-            let spanColor = 'black';
-            let color = 'white';
-            
-            //Check for high contrast
-            if(contrastFlag) {
-                if(code == "stitched") {
-                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-                }
-                
-                else {
-                    if(highFlag) {
-                        if(highCode == code) {
-                            spanColor = 'white';
-                            color = 'black';
-                        }
-                        else {
-                            alpha = 0.25;
-                            spanColor = 'silver';
-                        }
-                    }
-                }
-                
-                
-
-            }
-
-
-            else {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-            
-                if(highFlag && highCode != code) {
-                    alpha = 0.25;
-                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
-                }
-                if(code == "stitched") {
-                    spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-                    alpha = 1;
-                }
-
-                color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
-            }
-            //tile.setAttribute('style', color)
-            
-            tile.children.item(0).style.color = spanColor;
-            tile.style.backgroundColor = color;
-        }
-    }
-
-}
-*/
+} */
 
 function zoomIn() {
     const collection = document.getElementsByClassName("tile");
@@ -1413,15 +1007,18 @@ window.addEventListener('resize', function(event) {
 window.openFile = openFile;
 window.save = save;
 window.flossUsageOpen = flossUsageOpen;
-window.highlight = highlight;
-window.paint = paint;
-window.bucket = bucket;
 window.previewOpen = previewOpen;
-window.undo = undo;
+
 window.zoomIn = zoomIn;
 window.zoomOut = zoomOut;
 window.zoomReset = zoomReset;
-window.highContrast = highContrast;
+
+// Grid manager tool functions
+window.highlight = () => gridManager.activateHighlight();
+window.paint = () => gridManager.activatePaint();
+window.bucket = () => gridManager.activateBucket();
+window.undo = () => gridManager.undo();
+window.highContrast = () => gridManager.activateHighContrast();
 window.loadNextFile = loadNextFile;
 window.flossUsageClose = flossUsageClose;
 window.previewClose = previewClose;

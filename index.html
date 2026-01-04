@@ -78,13 +78,14 @@
         
     </div>
     <div class="colors" data-color-container></div>
-
-
     <div class="tile-container" data-tile-container></div>
-
-    <div class="footnote" data-footnote>&euro;</div>
+    <div class="footnote">
+        <div class="footLeft">LEFT</div>
+        <div class="footRight">RIGHT</div>
+    </div>
+    
+    <!-- MODALS -->
     <div id="myModal" class="modal">
-        <!-- Modal content -->
         <div class="modal-content">
             <span class="close" onclick="flossUsageClose()">&times;</span>
             <p id="properties"></p>
@@ -95,7 +96,6 @@
     </div>
 
     <div id="previewModal" class="modal">
-        <!-- Modal content -->
         <div class="modal-content">
             <span class="close" onclick="previewClose()">&times;</span>
             <canvas id="canvas"></canvas>
@@ -123,8 +123,9 @@
                 <span class="pathButton" onclick="drawSVG()">DRAW SVG</span>
             </div>
         </div>
-        
     </div>
+
+    <!-- TEMPLATES -->
 
     <template data-color-template>
         <div class="colorback" data-color-back>
