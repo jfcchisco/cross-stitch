@@ -3,37 +3,24 @@ import GridManager from "./grid-manager.js";
 import UIManager from "./ui-manager.js";
 
 const tileContainer = document.getElementsByClassName("tile-container")[0];
-const colorTemplate = document.querySelector("[data-color-template]");
-const tileTemplate = document.querySelector("[data-tile-template]");
-const rowTemplate = document.querySelector("[data-row-template]");
-const colorContainer = document.querySelector("[data-color-container]");
 
 const patternLoader = new PatternLoader();
 const uiManager = new UIManager();
-const gridManager = new GridManager(tileContainer, patternLoader, uiManager);
+const gridManager = new GridManager(patternLoader, uiManager);
 uiManager.getGridManager(gridManager);
+uiManager.getPatternLoader(patternLoader);
 
-let MIN_HEIGHT = 10;
-let MAX_HEIGHT = 50;
-let DEFAULT_HEIGHT = 20;
 let CLUSTER_SEQUENCE = []
 let THRESHOLD = 10;
 
-let box = 50; // Stitch width and height
 let cols = 0;
 let rows = 0;
 
-let zoomResetFlag = false;
 let highCode = 0;
 
 let jsonFiles = ['json/cubs.json', 'json/liverpool.json', 'json/japan.json', 'json/northern.json', 'json/cuphead.json', 'json/dino.json', 'json/amsterdam.json', 'json/african.json', 'json/messi.json'];
 let currIndex = 0;
 let jsonFile = jsonFiles[currIndex];
-// Removed: let jsonObject = {}; // Now handled by PatternLoader
-// Removed: let originalObject = {}; // Now handled by PatternLoader
-// Removed: let changes = []; // Now handled by PatternLoader
-// Removed: let colorArray = []; // Now handled by GridManager
-var downloadURL = null;
 
 window.onload = async function() {
     try {
@@ -76,175 +63,16 @@ function addChangesToJsonObject() {
     return;
 }
 
-function fillFlossUsage() {
-    //clear all elements of the modal
-    let modalList = document.getElementById("modalList");
-
-    //Clear table
-    while(modalList.lastElementChild) {
-        modalList.removeChild(modalList.lastElementChild);
-    }
-
-    // Clear color selectors
-    while(colorContainer.lastElementChild) {
-        colorContainer.removeChild(colorContainer.lastElementChild);
-    }
-    
-    // Get color array from GridManager
-    const colorArray = gridManager.getColorArray();
-    
-    //Count already stitched
-    let stitched = 0;
-    let toStitch = 0;
-    colorArray.forEach(obj => {
-        if(obj.code == "stitched") {
-            stitched = obj.count;
-        }
-        else if(obj.code != "empty") {
-            toStitch += obj.count;
-        }
-    })
-
-    toStitch += stitched;
-    let percentage = ((stitched * 100)/ toStitch).toFixed(2);
-
-    //Sort for table 
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-
-    //Sort for table 
-    colorArray.sort(function(a, b) {
-        if(a.count < b.count) return 1;
-        if(a.count > b.count) return -1;
-        return 0;
-    });
-
-    //Fill properties
-    let par = document.getElementById("properties");
-    const currentPattern = patternLoader.getCurrentPattern();
-    let hS = currentPattern.properties.height;
-    let wS = currentPattern.properties.width;
-    // Aida 14 is 5.4 stitches per cm (0.185 mm per stitch)
-    let hCM = (hS * 0.185).toFixed(1);
-    let wCM = (wS * 0.185).toFixed(1);
-    par.innerHTML = hS + "h x " + wS + "w (" + hCM + "cm x " + wCM + "cm). " + stitched + "/" + toStitch + " stitched (" + percentage + "%)";
-
-    //Fill floss count
-    let flossCountPar = document.getElementById("flossCount");
-    flossCountPar.innerHTML = colorArray.length + " colors";
-
-    //Fill table
-    
-    //let table = document.getElementById("modalTable");
-    let table = document.createElement("table");
-    const headRow = document.createElement('tr');
-
-    let heads = ["Color", "Symbol", "Code", "Name", "Count"];
-    for (let i in heads) {
-        const headCell = document.createElement('th');
-        headCell.textContent = heads[i];
-        headRow.appendChild(headCell);
-    }
-
-    table.appendChild(headRow);
-
-    let newRow = document.createElement('tr');
-    let newCell = document.createElement('td');
-
-    colorArray.map(color =>  {
-        if(color.code != "empty") {
-            newRow = document.createElement('tr');
-
-            newCell = document.createElement('td');
-            //newCell.textContent = color.R + "," + color.G + "," + color.B;
-            let backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            newCell.setAttribute('style', backColor);
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.symbol;
-            newCell.setAttribute('style', 'text-align: center');
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.code;
-            newCell.setAttribute('style', 'text-align: right');
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.name;
-            newRow.appendChild(newCell);
-
-            newCell = document.createElement('td');
-            newCell.textContent = color.count;
-            newCell.setAttribute('style', 'text-align: right');
-            newRow.appendChild(newCell);
-            table.appendChild(newRow);
-        }
-        
-        
-
-
-        // Fill color selectors
-        if(color.code!="empty" && color.count > 0) {
-            const colorDiv = colorTemplate.content.cloneNode(true).children[0];
-            const colorBack = colorDiv.querySelector("[data-color-back]");
-            const colorFront = colorDiv.querySelector("[data-color]");
-            const colorId = colorDiv.querySelector("[data-color-id]");
-
-            colorId.textContent = color.symbol;
-            colorId.style.color = (((color.R * 0.299)+(color.G * 0.587)+(color.B * 0.114)) > 186) ? 'black' : 'white'; // contrast threshold
-            
-            const backColor = "background-color: rgb(" + color.R + "," + color.G + "," + color.B + ")";
-            colorFront.setAttribute('style', backColor)
-            const colorTitle = color.code + " - " + color.name;
-            colorFront.setAttribute('title', colorTitle);
-            const colorClick = `selectColor(\"${color.code}\", \"${color.symbol}\")`;
-            colorFront.setAttribute('onclick', colorClick);
-
-	    // collection[i].classList.remove("activeColor")
-	    // if(highFlag && color.code == highCode) {
-	    //     colorBack.classList.add('activeColor')
-	    // }
-
-            if(colorBack != null) {
-                colorBack.classList.add('holyS');
-            }
-            colorContainer.append(colorDiv);
-        }
-    })
-    
-    if (gridManager.highFlag) {
-        selectColor(gridManager.highlightedColor, gridManager.highlightedSymbol);
-    }
-
-    modalList.appendChild(table);
-}
-
 function flossUsageClose() {
     let modal = document.getElementById("myModal");
     modal.style.display = "none";
 }
 
 function flossUsageOpen() {
-    fillFlossUsage();
+    uiManager.fillFlossUsage();
     let modal = document.getElementById("myModal");
     modal.style.display = "block";
 }
-
-/* function getDMCValuesFromCode(code) {
-    let color2return = {};
-    const currentPattern = patternLoader.getCurrentPattern();
-    currentPattern.colors.forEach(obj => {
-        if(obj.dmcCode === code) {
-            color2return = obj;
-        }
-    })
-    return color2return;
-} */
 
 function loadJSON(data) {
     // Data is already processed by PatternLoader
@@ -252,7 +80,7 @@ function loadJSON(data) {
 
     // Initialize color array in GridManager
     gridManager.initializeColorArray(processedData);
-    fillFlossUsage();
+    uiManager.fillFlossUsage();
 
     //Create all divs for tiles
     //One additional because the array starts at zero
@@ -261,78 +89,16 @@ function loadJSON(data) {
     rows = processedData.stitches[processedData.stitches.length-1].Y+1
 
     gridManager.initializeGrid(cols, rows);
-/* 
-    // Adding svg-container
-    const svgContainer = document.createElement("div");
-    svgContainer.setAttribute("class", "svg-container");
-    const newSVG = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-    svgContainer.append(newSVG);
-    tileContainer.append(svgContainer);
-    
-    const rulerRow = rowTemplate.content.cloneNode(true).children[0];
-    
-    //Adding vertical ruler div
-    const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-    //rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
-    rulerDiv.classList.add("vertRulerDiv");
-    rulerRow.append(rulerDiv);
 
-    for (let i = 1; i <= cols; i++)  {
-        const tileDiv = tileTemplate.content.cloneNode(true).children[0];
-        //tileDiv.setAttribute('style', "background-color: rgb(241, 241, 241);");
-        tileDiv.classList.add("horRulerRow");
-        if(i%10 == 0) {
-            tileDiv.children.item(0).innerText = i/10;
-            tileDiv.children.item(0).setAttribute('style', "float: right;");
-        }
-        if(i%10 == 1 && i > 1) {
-            tileDiv.children.item(0).innerText = 0;
-            tileDiv.children.item(0).setAttribute('style', "float: left;");
-        }
-        rulerRow.append(tileDiv);
-    }
-
-    rulerRow.classList.add("horRulerRow");
-    //rulerRow.setAttribute('style', "position: sticky; top: 0")
-    tileContainer.append(rulerRow);
-
-    for (let j = 1; j <= rows; j++) {
-        const newRow = rowTemplate.content.cloneNode(true).children[0];
-
-        //Adding vertical ruler div
-        const rulerDiv = tileTemplate.content.cloneNode(true).children[0];
-        rulerDiv.classList.add("vertRulerDiv");
-        //rulerDiv.setAttribute('style', "position: sticky; left: 0; background-color: rgb(241, 241, 241);");
-        if(j%10 == 0) {
-            rulerDiv.children.item(0).innerText = j/10;
-            
-        }if(j%10 == 1 && j > 1) {
-            rulerDiv.children.item(0).innerText = 0;
-        }
-        newRow.append(rulerDiv);
-
-        for (let i = 1; i <= cols; i++)  {
-            const tileDiv = tileTemplate.content.cloneNode(true).children[0];
-            if(i%2==0) {
-                tileDiv.setAttribute('style', "background-color: white");
-            }
-            else {
-                tileDiv.setAttribute('style', "background-color: yellow");
-            }
-            newRow.append(tileDiv);
-        }
-        tileContainer.append(newRow)
-    }
- */
-    //updateColor(processedData.stitches);
-    //gridManager.refreshGridDisplay();
     gridManager.updateTileAttributes(processedData.stitches);
     gridManager.refreshGridDisplay();
     gridManager.drawGridLines();
 
+    // Adjust tile container height
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
+    
     uiManager.updateFootnote("Loaded pattern"); 
 }
 
@@ -433,23 +199,14 @@ function previewPath(type) {
     let s = highStitches[1];
     ctx.fillStyle = "#000000";
     ctx.fillRect(10,10,20,20);
-    //ctx.fillRect(s.X*box, s.Y*box, s.X*box+box, s.Y*box+box);
-
+    
     const tileCollection = document.getElementsByClassName("tile");
-    //for (let i = 0; i < collection.length; i++) {
-    //    collection[i].classList.remove("activeColor");
-    //}
 
     for (let i = 0; i < tileCollection.length; i++) {
         let tileObj = tileCollection[i];
         let code = tileObj.getAttribute('data-tile-code');
         let x = Number(tileObj.getAttribute('data-tile-x'));
         let y = Number(tileObj.getAttribute('data-tile-y'));
-        //Adding offset due to ruler
-        //let row = tileContainer.children.item(tileValues.Y + 1);
-        //let tile = row.children.item(tileValues.X + 1)
-
-        //let backColor = tile.style.backgroundColor;
         if(code == gridManager.highlightedColor) {
             ctx.fillStyle = "#000000";;
             ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
@@ -655,7 +412,6 @@ function getClosestClusterToPoint(clusterNumbers, sList, pointX, pointY) {
                     dist = newDist;
                     retCluster = c;
                 }
-
             }
         }
     }
@@ -838,150 +594,12 @@ function save() {
 
 function selectColor(color, symbol) {
     gridManager.selectColor(color, symbol);
-    // footNote.innerText = "Color selected: " + color + " - " + getDMCName(color) + " | Stitched: " + getStitched();    
-     
-}
-
-function setHeight(newHeight) {
-    const collection = document.getElementsByClassName("tile");
-    let newHeightStyle = newHeight + "px";
-    let newFontSizeStyle = Math.round((newHeight*3)/4) + "px";
-
-    for (let i = 0; i < collection.length; i++) {
-        collection[i].style.height = newHeightStyle;
-        collection[i].style.width = newHeightStyle;
-        collection[i].children.item(0).style.fontSize = newFontSizeStyle;
-    }
-
 }
 
 function tileClick(obj) {
     const x = Number(obj.getAttribute('data-tile-x'));
     const y = Number(obj.getAttribute('data-tile-y'));
     gridManager.handleTileClick(x, y);
-
-}
-
-/* function updateColor(stitches) {
-    for (let i = 0; i < stitches.length; i++) {
-        let tileValues = stitches[i];
-
-        let tileColor = getDMCValuesFromCode(tileValues.dmcCode);
-
-        let R = tileColor.R;
-        let G = tileColor.G;
-        let B = tileColor.B;
-        let dmcName = tileColor.dmcName;
-        let symbol = tileColor.symbol;
-        let code = tileColor.dmcCode;
-
-        //+2 to compensate for the horizontal ruler
-        let row = tileContainer.children.item(tileValues.Y + 2);
-
-        //+1 to compensate for the vertical ruler
-        let tile = row.children.item(tileValues.X + 1);
-
-        let alpha = 1;
-        let spanColor = 'black';
-        let color = 'white';
-        //Check for high contrast
-        if(gridManager.contrastFlag) {
-            if(code == "stitched") {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-            }
-            
-            else {
-                if(gridManager.highFlag) {
-                    if(highCode == code) {
-                        spanColor = 'white';
-                        color = 'black';
-                    }
-                    else {
-                        alpha = 0.25;
-                        spanColor = 'silver';
-                    }
-                }
-            }
-            
-               
-
-        }
-
-
-        else {
-            spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-		
-            if(gridManager.highFlag && gridManager.highlightedColor != code) {
-                alpha = 0.25;
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'silver' : 'white';
-            }
-	    if(code == "stitched") {
-                spanColor = (((R * 0.299)+(G * 0.587)+(B * 0.114)) > 186) ? 'black' : 'white';
-                color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-		        alpha = 1;
-            }
-
-            color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
-        }
-        //tile.setAttribute('style', color)
-        
-        
-        tile.style.backgroundColor = color;
-        let X = tileValues.X + 1;
-        let Y = tileValues.Y + 1;
-        let tileTitle = tileValues.dmcCode + " - " + dmcName + " - X: " + X + " - Y: " + Y
-        tile.setAttribute('title', tileTitle)
-
-        let tileClick = "tileClick(this)"
-        if(code != "empty") {
-            tile.setAttribute('onclick', tileClick);
-        }
-        
-        //tile.children.item(0).innerHTML = tileValues.symbol;
-        tile.children.item(0).innerText = symbol;
-
-        tile.children.item(0).style.color = spanColor;
-        // footNote.innerText = "Stitched: " + getStitched();  
-
-        // Add data attributes
-        tile.setAttribute('data-tile-x', tileValues.X);
-        tile.setAttribute('data-tile-y', tileValues.Y);
-        tile.setAttribute('data-tile-code', tileValues.dmcCode);
-        tile.setAttribute('data-tile-r', R);
-        tile.setAttribute('data-tile-g', G);
-        tile.setAttribute('data-tile-b', B);
-
-    }
-} */
-
-function zoomIn() {
-    const collection = document.getElementsByClassName("tile");
-    let height = collection[0].offsetHeight;
-    if(height < MAX_HEIGHT) {
-        let newHeight = height + 2;
-        setHeight(newHeight);
-    }
-}
-
-function zoomOut() {
-    const collection = document.getElementsByClassName("tile");
-    let height = collection[0].offsetHeight;
-    if(height > MIN_HEIGHT) {
-        let newHeight = height - 2;
-        setHeight(newHeight);
-    }
-}
-
-function zoomReset() {
-    zoomResetFlag = !zoomResetFlag;
-
-    if(zoomResetFlag) {
-        setHeight(Math.round(tileContainer.offsetHeight/tileContainer.children.length) - 1);
-    }
-    else {
-        setHeight(DEFAULT_HEIGHT);
-    }
 }
 
 window.onclick = function(event) {
@@ -991,27 +609,23 @@ window.onclick = function(event) {
     }
 }
 
-
-
 window.addEventListener('resize', function(event) {
-    
     var body = document.body;
-    //var height = Math.max( body.scrollHeight, body.offsetHeight, html.clientHeight, html.scrollHeight, html.offsetHeight );
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
-
     tileContainer.style.height = height+"px";
-    
 }, true);
 
 // Expose functions to global scope for HTML onclick attributes
 window.openFile = openFile;
 window.save = save;
-window.flossUsageOpen = flossUsageOpen;
-window.previewOpen = previewOpen;
+window.loadNextFile = loadNextFile;
 
-window.zoomIn = zoomIn;
-window.zoomOut = zoomOut;
-window.zoomReset = zoomReset;
+window.flossUsageOpen = flossUsageOpen;
+window.flossUsageClose = flossUsageClose;
+window.previewOpen = previewOpen;
+window.previewClose = previewClose;
+window.previewPath = previewPath;
+window.drawSVG = drawSVG;
 
 // Grid manager tool functions
 window.highlight = () => gridManager.activateHighlight();
@@ -1019,11 +633,10 @@ window.paint = () => gridManager.activatePaint();
 window.bucket = () => gridManager.activateBucket();
 window.undo = () => gridManager.undo();
 window.highContrast = () => gridManager.activateHighContrast();
-window.loadNextFile = loadNextFile;
-window.flossUsageClose = flossUsageClose;
-window.previewClose = previewClose;
-window.previewPath = previewPath;
-window.drawSVG = drawSVG;
+window.zoomIn = () => gridManager.zoomIn();
+window.zoomOut = () => gridManager.zoomOut();
+window.zoomReset = () => gridManager.zoomReset();
+
 window.selectColor = selectColor;
 window.tileClick = tileClick;
 
