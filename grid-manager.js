@@ -11,7 +11,20 @@ class GridManager {
         this.paintFlag = false; // Paint mode flag
         this.bucketFlag = false; // Bucket mode flag
         this.highFlag = false; // Highlight mode flag
-
+        this.colorArray = [];
+        
+        //Virtualization properties
+        this.totalRows = 0;
+        this.totalCols = 0;
+        this.visibleRows = 50;
+        this.visibleCols = 80;
+        this.bufferRows = 10;
+        this.bufferCols = 10;
+        this.scrollTop = 0;
+        this.scrollLeft = 0;
+        this.tileSize = 20; // Assuming each tile is 20x20 pixels
+        this.virtualRows = [];
+        this.virtualCols = [];
     }
 
     /**
@@ -70,47 +83,50 @@ class GridManager {
 
     // Main interaction handler
     handleTileClick(x, y) {
-        const tile = this.getTile(x, y);
+        const tile = this.getVirtualTile(x, y);
         if (!tile) return;
 
         const tileCode = tile.getAttribute('data-tile-code');
-        this.uiManager.updateFootnote(`Tile (X: ${x+1}, Y: ${y+1}) - Code: ${tileCode} - ${this.getDMCValuesFromCode(tileCode).dmcName}`);
+        
         if (this.paintFlag) {
             if(this.highFlag && this.highlightedColor !== tileCode) {
-                return; // Cannot paint non-highlighted colors
+                return;
             }
-            return this.handlePaint(tile);
+            return this.handlePaintVirtual(x, y);
         } 
         else if (this.bucketFlag) {
             if(this.highFlag && this.highlightedColor !== tileCode) {
-                return; // Cannot bucket-fill non-highlighted colors
+                return;
             }
-            return this.handleBucketFill(tile);
+            return this.handleBucketFillVirtual(x, y);
         } 
         else if (this.highFlag) {
-            return this.handleHighlight(tile);
+            return this.handleHighlightVirtual(x, y);
         }
+    }
 
+    getVirtualTile(x, y) {
+        return this.virtualContent.querySelector(`[data-tile-x="${x}"][data-tile-y="${y}"]`);
     }
 
     // ===== IMPLEMENTATION DETAILS =====
 
-    handlePaint(tile) {
-        const tileCode = tile.getAttribute('data-tile-code');
-        if(tileCode === 'stitched') {
-            return 0; // Tile already stitched
-        }
-        // Record change for undo functionality
+    handlePaintVirtual(x, y) {
+        // Record change
         this.changeCounter++;
         this.patternLoader.changeCounter = this.changeCounter;
         
-        // Apply paint to single tile
-        this.applyStitchToTile(tile, this.changeCounter);
+        // Update pattern data
+        this.updateStitchInPattern(x, y, 'stitched');
         
         // Update color statistics
+        const tileCode = this.getTileData(x, y)?.dmcCode || 'empty';
         this.updateColorStats(tileCode, 1);
-        this.uiManager.updateFootnote("1 stitch painted");        
-        return 1; // Return number of tiles affected
+        
+        // Re-render visible area
+        this.renderVisibleTiles();
+        
+        return 1;
     }
 
     handleBucketFill(tile) {
@@ -161,6 +177,23 @@ class GridManager {
     }
 
     // ===== HELPER METHODS =====
+
+    updateStitchInPattern(x, y, newCode) {
+        const currentPattern = this.patternLoader.getCurrentPattern();
+        if (!currentPattern.stitches) return;
+
+        // Find existing stitch or create new one
+        let stitch = currentPattern.stitches.find(s => s.X === x && s.Y === y);
+        if (stitch) {
+            // Record change for undo
+            this.patternLoader.recordChange(x, y, newCode, stitch.dmcCode);
+            stitch.dmcCode = newCode;
+        } else {
+            // Add new stitch
+            currentPattern.stitches.push({ X: x, Y: y, dmcCode: newCode });
+            this.patternLoader.recordChange(x, y, newCode, 'empty');
+        }
+    }
 
     applyStitchToTile(tile, changeCounter) {
         
@@ -290,8 +323,7 @@ class GridManager {
     }
 
     refreshGridDisplay() {
-        // Trigger a full grid visual refresh
-        this.updateTileColors();
+        this.renderVisibleTiles();
     }
 
     updateTileAttributes(stitches) {
@@ -299,12 +331,12 @@ class GridManager {
         stitches.forEach(stitch => {
 
             //+2 to compensate for the horizontal ruler
-            let row = this.tileContainer.children.item(stitch.Y + 2);
+            //let row = this.tileContainer.children.item(stitch.Y + 2);
 
             //+1 to compensate for the vertical ruler
-            let tile = row.children.item(stitch.X + 1);
+            // let tile = row.children.item(stitch.X + 1);
             // console.log(tile, stitch);
-            if (tile) {
+            /* if (tile) {
                 tile.setAttribute('data-tile-x', stitch.X);
                 tile.setAttribute('data-tile-y', stitch.Y);
                 const code = stitch.dmcCode || "empty";
@@ -319,19 +351,14 @@ class GridManager {
                 if(code !== "empty") {
                     tile.setAttribute('onclick', `tileClick(this)`);
                 }
-            }
+            } */
         });
     }
 
     updateTileColors() {
-        // Iterate through all tiles and update their visual appearance
-        for (let i = 2; i < this.tileContainer.children.length; i++) {
-            const row = this.tileContainer.children[i];
-            for (let j = 1; j < row.children.length; j++) {
-                const tile = row.children[j];
-                this.updateSingleTileColor(tile);
-            }
-        }
+        // Only update visible tiles
+        const tiles = this.virtualContent.querySelectorAll('.virtual-tile');
+        tiles.forEach(tile => this.updateSingleTileColor(tile));
     }
 
     updateSingleTileColor(tile) {
@@ -471,7 +498,106 @@ class GridManager {
         //
         this.removeAllTiles();
         this.createSVGContainer();
-        this.createTilesAndRulers(cols, rows);
+        // Set up scrollable container
+        this.setupVirtualContainer();
+
+        // Create initial visible tiles
+        this.renderVisibleTiles(cols, rows);
+
+        // Set up scroll event listeners
+        this.setupScrollHandling();
+
+        
+        // this.createTilesAndRulers(cols, rows);
+    }
+
+    setupVirtualContainer() {
+        // Make container scrollable with fixed dimensions
+        this.tileContainer.style.overflow = 'auto';
+        this.tileContainer.style.height = '600px'; // Fixed height
+        this.tileContainer.style.width = '100%';
+        
+        // Create inner container for actual content
+        this.virtualContent = document.createElement('div');
+        this.virtualContent.style.height = `${this.totalRows * this.tileSize}px`;
+        this.virtualContent.style.width = `${this.totalCols * this.tileSize}px`;
+        this.virtualContent.style.position = 'relative';
+        this.tileContainer.appendChild(this.virtualContent);
+    }
+
+    renderVisibleTiles(cols, rows) {
+        console.log(cols, rows);
+        this.totalRows = this.patternLoader.getCurrentPattern().properties.height;
+        this.totalCols = this.patternLoader.getCurrentPattern().properties.width;
+
+        const startRow = Math.max(0, Math.floor(this.scrollTop / this.tileSize) - this.bufferRows);
+        const endRow = Math.min(this.totalRows, startRow + this.visibleRows + 2 * this.bufferRows);
+        const startCol = Math.max(0, Math.floor(this.scrollLeft / this.tileSize) - this.bufferCols);
+        const endCol = Math.min(this.totalCols, startCol + this.visibleCols + 2 * this.bufferCols);
+        console.log(this.totalRows, startRow, this.visibleRows, this.bufferRows)
+        // Clear previous tiles
+        this.virtualContent.innerHTML = '';
+        //console.log(this.virtualContent)
+        //console.log(startRow, endRow, startCol, endCol);
+        // Create visible tiles
+        for (let row = startRow; row < endRow; row++) {
+            for (let col = startCol; col < endCol; col++) {
+                const tile = this.createVirtualTile(row, col);
+                //console.log('tile');
+                tile.style.position = 'absolute';
+                tile.style.left = `${col * this.tileSize}px`;
+                tile.style.top = `${row * this.tileSize}px`;
+                tile.setAttribute('onclick', `tileClick(this)`);
+                this.virtualContent.appendChild(tile);
+            }
+        }
+    }
+
+    createVirtualTile(row, col) {
+        const tileDiv = document.createElement('div');
+        tileDiv.className = 'virtual-tile';
+        tileDiv.setAttribute('data-tile-x', col);
+        tileDiv.setAttribute('data-tile-y', row);
+        tileDiv.style.width = `${this.tileSize}px`;
+        tileDiv.style.height = `${this.tileSize}px`;
+        
+        // Get tile data from pattern
+        const tileData = this.getTileData(row, col);
+        if (tileData) {
+            tileDiv.setAttribute('data-tile-code', tileData.dmcCode);
+            tileDiv.setAttribute('data-tile-r', tileData.R);
+            tileDiv.setAttribute('data-tile-g', tileData.G);
+            tileDiv.setAttribute('data-tile-b', tileData.B);
+            tileDiv.innerHTML = `<span>${tileData.symbol}</span>`;
+            this.updateSingleTileColor(tileDiv);
+        }
+
+        // Add click handler
+        tileDiv.addEventListener('click', () => {
+            this.handleTileClick(col, row);
+        });
+
+        return tileDiv;
+    }
+
+    getTileData(row, col) {
+        const currentPattern = this.patternLoader.getCurrentPattern();
+        if (!currentPattern || !currentPattern.stitches) return null;
+        
+        // Find the stitch at this position
+        const stitch = currentPattern.stitches.find(s => s.X === col && s.Y === row);
+        if (stitch) {
+            return this.getDMCValuesFromCode(stitch.dmcCode);
+        }
+        return { dmcCode: 'empty', R: 255, G: 255, B: 255, symbol: '' };
+    }
+
+    setupScrollHandling() {
+        this.tileContainer.addEventListener('scroll', (e) => {
+            this.scrollTop = e.target.scrollTop;
+            this.scrollLeft = e.target.scrollLeft;
+            this.renderVisibleTiles();
+        });
     }
 
     drawHorizontalLines() {
@@ -529,7 +655,7 @@ class GridManager {
     drawGridLines() {
         this.drawHorizontalLines();
         this.drawVerticalLines();
-        this.drawMiddleLines();
+        // this.drawMiddleLines();
     }
 
 
