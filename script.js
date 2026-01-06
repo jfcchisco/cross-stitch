@@ -98,7 +98,7 @@ function loadJSON(data) {
     var body = document.body;
     var height = body.offsetHeight - 130 - 25; // total minus the 2 toolbars and some margin
     tileContainer.style.height = height+"px";
-    
+
     uiManager.updateFootnote("Loaded pattern"); 
 }
 
@@ -620,8 +620,8 @@ window.openFile = openFile;
 window.save = save;
 window.loadNextFile = loadNextFile;
 
-window.flossUsageOpen = flossUsageOpen;
-window.flossUsageClose = flossUsageClose;
+window.flossUsageOpen = () => uiManager.flossUsageOpen();
+window.flossUsageClose = () => uiManager.flossUsageClose();
 window.previewOpen = previewOpen;
 window.previewClose = previewClose;
 window.previewPath = previewPath;
