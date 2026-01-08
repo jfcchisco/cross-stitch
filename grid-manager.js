@@ -1,6 +1,12 @@
+/**
+ * GridManager Class
+ * Manages the grid of tiles for the cross-stitch pattern.
+ * Handles tool interactions, tile updates, and color management.
+ * Depends on PatternLoader and UIManager.
+ */
 class GridManager {
-    constructor(tileContainer, patternLoader, uiManager) {
-        this.tileContainer = tileContainer;
+    constructor(patternLoader, uiManager) {
+        this.tileContainer = document.getElementsByClassName("tile-container")[0];
         this.patternLoader = patternLoader;
         this.uiManager = uiManager;
         this.activeTool = null;
@@ -11,6 +17,10 @@ class GridManager {
         this.paintFlag = false; // Paint mode flag
         this.bucketFlag = false; // Bucket mode flag
         this.highFlag = false; // Highlight mode flag
+        this.zoomResetFlag = false; 
+        this.maxHeight = 50;
+        this.minHeight = 10;
+        this.defaultHeight = 20;
 
     }
 
@@ -160,6 +170,133 @@ class GridManager {
         return 0; // No tiles directly modified
     }
 
+    undo() {
+        if(this.patternLoader.changeCounter == 0) {
+            return;
+        }
+        let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(this.patternLoader.changeCounter)}]`);
+        tiles.forEach(tile => {
+            let origCode = tile.getAttribute('data-tile-orig-code');
+            let origColor = this.getDMCValuesFromCode(origCode);
+            let R = origColor.R;
+            let G = origColor.G;
+            let B = origColor.B;
+
+            tile.children.item(0).innerText = origColor.symbol;
+            tile.removeAttribute('data-tile-change');
+            tile.setAttribute('data-tile-code', origColor.dmcCode);
+            tile.setAttribute('data-tile-r', origColor.R);
+            tile.setAttribute('data-tile-g', origColor.G);
+            tile.setAttribute('data-tile-b', origColor.B);
+            
+            let code = origCode;
+            let alpha = 1;
+            let spanColor = 'black';
+            let color = 'white';
+            
+            //Check for high contrast
+            if(this.contrastFlag) {
+                if(code == "stitched") {
+                    spanColor = this.getContrastColor(R, G, B);
+                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+                }
+                
+                else {
+                    if(this.highFlag) {
+                        if(this.highlightedColor == code) {
+                            spanColor = 'white';
+                            color = 'black';
+                        }
+                        else {
+                            alpha = 0.25;
+                            spanColor = 'silver';
+                        }
+                    }
+                }
+            }
+
+            else {
+                spanColor = this.getContrastColor(R, G, B);
+            
+                if(this.highFlag && this.highlightedColor != code) {
+                    alpha = 0.25;
+                    spanColor = this.getContrastColor(R, G, B) === 'black' ? 'silver' : 'white';
+                }
+                if(code == "stitched") {
+                    spanColor = this.getContrastColor(R, G, B);
+                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
+                    alpha = 1;
+                }
+
+                color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
+            }
+            
+            // Update stitch count and restore original count
+            let length = this.colorArray.length;
+            
+            for (let i = 0; i < length; i ++) {
+                
+                if(origCode == this.colorArray[i].code) {
+                    this.colorArray[i].count = this.colorArray[i].count + 1;
+                }
+
+                if(this.colorArray[i].code == 'stitched') {
+                    this.colorArray[i].count = this.colorArray[i].count - 1;
+                }
+            }
+            
+            tile.children.item(0).style.color = spanColor;
+            tile.style.backgroundColor = color;
+            
+        })
+        this.patternLoader.changeCounter--;
+        this.uiManager.updateFootnote("Change undone");
+        
+    }
+
+    setHeight(newHeight) {
+        const collection = document.getElementsByClassName("tile");
+        let newHeightStyle = newHeight + "px";
+        let newFontSizeStyle = Math.round((newHeight*3)/4) + "px";
+
+        for (let i = 0; i < collection.length; i++) {
+            collection[i].style.height = newHeightStyle;
+            collection[i].style.width = newHeightStyle;
+            collection[i].children.item(0).style.fontSize = newFontSizeStyle;
+        }
+
+    }
+
+    zoomIn() {
+        const collection = document.getElementsByClassName("tile");
+        let height = collection[0].offsetHeight;
+        if(height < this.maxHeight) {
+            let newHeight = height + 2;
+            this.setHeight(newHeight);
+        }
+    }
+
+    zoomOut() {
+        const collection = document.getElementsByClassName("tile");
+        let height = collection[0].offsetHeight;
+        if(height > this.minHeight) {
+            let newHeight = height - 2;
+            this.setHeight(newHeight);
+        }
+    }
+
+    zoomReset() {
+        this.zoomResetFlag = !this.zoomResetFlag;
+        if(this.zoomResetFlag) {
+            this.setHeight(Math.round(this.tileContainer.offsetHeight/this.tileContainer.children.length) - 1);
+        }
+        else {
+            this.setHeight(this.defaultHeight);
+        }
+    }
+
+
+
     // ===== HELPER METHODS =====
 
     applyStitchToTile(tile, changeCounter) {
@@ -231,6 +368,7 @@ class GridManager {
     }
 
     selectColor(colorCode, symbol) {
+        console.log(colorCode, symbol);
         // Update global highlight state
         this.highlightedColor = colorCode;
         this.highlightedSymbol = symbol;
@@ -656,89 +794,7 @@ class GridManager {
         return highlightedStitches;
     }
 
-    undo() {
-        if(this.patternLoader.changeCounter == 0) {
-            return;
-        }
-        let tiles = document.querySelectorAll(`[data-tile-change=${CSS.escape(this.patternLoader.changeCounter)}]`);
-        tiles.forEach(tile => {
-            let origCode = tile.getAttribute('data-tile-orig-code');
-            let origColor = this.getDMCValuesFromCode(origCode);
-            let R = origColor.R;
-            let G = origColor.G;
-            let B = origColor.B;
-
-            tile.children.item(0).innerText = origColor.symbol;
-            tile.removeAttribute('data-tile-change');
-            tile.setAttribute('data-tile-code', origColor.dmcCode);
-            tile.setAttribute('data-tile-r', origColor.R);
-            tile.setAttribute('data-tile-g', origColor.G);
-            tile.setAttribute('data-tile-b', origColor.B);
-            
-            let code = origCode;
-            let alpha = 1;
-            let spanColor = 'black';
-            let color = 'white';
-            
-            //Check for high contrast
-            if(this.contrastFlag) {
-                if(code == "stitched") {
-                    spanColor = this.getContrastColor(R, G, B);
-                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-                }
-                
-                else {
-                    if(this.highFlag) {
-                        if(this.highlightedColor == code) {
-                            spanColor = 'white';
-                            color = 'black';
-                        }
-                        else {
-                            alpha = 0.25;
-                            spanColor = 'silver';
-                        }
-                    }
-                }
-            }
-
-            else {
-                spanColor = this.getContrastColor(R, G, B);
-            
-                if(this.highFlag && this.highlightedColor != code) {
-                    alpha = 0.25;
-                    spanColor = this.getContrastColor(R, G, B) === 'black' ? 'silver' : 'white';
-                }
-                if(code == "stitched") {
-                    spanColor = this.getContrastColor(R, G, B);
-                    color = "rgba(" + R + ", " + G + ", " + B + ",1)";
-                    alpha = 1;
-                }
-
-                color = "rgba(" + R + ", " + G + ", " + B + "," + alpha + ")";
-            }
-            
-            // Update stitch count and restore original count
-            let length = this.colorArray.length;
-            
-            for (let i = 0; i < length; i ++) {
-                
-                if(origCode == this.colorArray[i].code) {
-                    this.colorArray[i].count = this.colorArray[i].count + 1;
-                }
-
-                if(this.colorArray[i].code == 'stitched') {
-                    this.colorArray[i].count = this.colorArray[i].count - 1;
-                }
-            }
-            
-            tile.children.item(0).style.color = spanColor;
-            tile.style.backgroundColor = color;
-            
-        })
-        this.patternLoader.changeCounter--;
-        this.uiManager.updateFootnote("Change undone");
-        
-    }
+    
 }
 
 export default GridManager;
