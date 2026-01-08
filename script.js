@@ -553,7 +553,7 @@ function previewOpen() {
 function save() {
     //mergeChanges();
     addChangesToJsonObject();
-    uiManager.  fillFlossUsage();
+    uiManager.fillFlossUsage();
 
     const exportData = patternLoader.exportPattern();
     var text2write = JSON.stringify(exportData);
