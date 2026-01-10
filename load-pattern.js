@@ -13,12 +13,13 @@ class PatternLoader {
             'json/cubs.json',
             'json/liverpool.json',
             'json/japan.json',
-            'json/northern.json',
+            'json/amsterdam.json'
+            /* 'json/northern.json',
             'json/cuphead.json',
             'json/dino.json',
             'json/amsterdam.json',
             'json/african.json',
-            'json/messi.json'
+            'json/messi.json' */
         ];
         this.currentIndex = 0;
     }
@@ -109,7 +110,7 @@ class PatternLoader {
         let lastID = 0;
 
         for (const stitch of stitches) {
-            const [id, code] = stitch.split("-");
+            const [id, dmcID] = stitch.split("-");
             const stitchId = parseInt(id);
 
             // Fill in missing stitches with empty
@@ -119,7 +120,7 @@ class PatternLoader {
                 newStitches.push({
                     "X": x,
                     "Y": y,
-                    "dmcCode": code
+                    "dmcCode": this.getCodeFromId(data, dmcID)
                 });
                 lastID++;
             }
@@ -130,7 +131,7 @@ class PatternLoader {
             newStitches.push({
                 "X": x,
                 "Y": y,
-                "dmcCode": code
+                "dmcCode": this.getCodeFromId(data, dmcID)
             });
             lastID++;
         }
@@ -317,6 +318,24 @@ class PatternLoader {
         this.changes = [];
         this.changeCounter = 0;
         this.currentPattern = JSON.parse(JSON.stringify(this.originalPattern));
+    }
+
+    getCodeFromId(data, id) {
+        for (const color of data.colors) {
+            if (color.id === id) {
+                return color.dmcCode;
+            }
+        }
+        return null;
+    }
+
+    getIDFromCode(data, dmcCode) {
+        for (const color of data.colors) {
+            if (color.dmcCode === dmcCode) {
+                return color.id;
+            }
+        }
+        return null;
     }
 }
 
