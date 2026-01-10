@@ -174,7 +174,7 @@ class PatternLoader {
                 // Write previous group if exists
                 if (currentCode) {
                     if (newStitches) newStitches += ",";
-                    newStitches += `${i-1}-${currentCode}`;
+                    newStitches += `${i-1}-${this.getIDFromCode(data, currentCode)}`;
                 }
                 currentCode = code;
                 startId = i;
@@ -184,7 +184,7 @@ class PatternLoader {
         // Write final group
         if (currentCode) {
             if (newStitches) newStitches += ",";
-            newStitches += `${startId}-${currentCode}`;
+            newStitches += `${startId}-${this.getIDFromCode(data, currentCode)}`;
         }
 
         return {
