@@ -20,7 +20,6 @@ let highCode = 0;
 
 let jsonFiles = ['json/cubs.json', 'json/liverpool.json', 'json/japan.json', 'json/northern.json', 'json/cuphead.json', 'json/dino.json', 'json/amsterdam.json', 'json/african.json', 'json/messi.json'];
 let currIndex = 0;
-let jsonFile = jsonFiles[currIndex];
 
 window.onload = async function() {
     try {

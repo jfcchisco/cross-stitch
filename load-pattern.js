@@ -13,9 +13,9 @@ class PatternLoader {
             'json/cubs.json',
             'json/liverpool.json',
             'json/japan.json',
-            'json/amsterdam.json'
-            /* 'json/northern.json',
-            'json/cuphead.json',
+            'json/amsterdam.json',
+            'json/northern.json'
+            /* 'json/cuphead.json',
             'json/dino.json',
             'json/amsterdam.json',
             'json/african.json',
@@ -106,7 +106,32 @@ class PatternLoader {
      */
     convertFileToStitches(data) {
         const newStitches = [];
-        const stitches = data.stitches.split(",");
+
+        // New format:
+        //   - Rows separated by ":"
+        //   - Stitches in a row show how many consecutive stitches of the same color there are followed by the color ID
+        const rows = data.stitches.split(":");
+        let stitchIndex = 0;
+        for (const row of rows) {
+            const stitches = row.split(",");
+            for (const stitch of stitches) {
+                if(stitch.trim() === "") continue;
+                const [countStr, dmcID] = stitch.split("-");
+                const count = parseInt(countStr);
+                for (let i = 0; i < count; i++) {
+                    const x = stitchIndex % data.properties.width;
+                    const y = Math.floor(stitchIndex / data.properties.width);
+                    newStitches.push({
+                        "X": x,
+                        "Y": y,
+                        "dmcCode": this.getCodeFromId(data, dmcID)
+                    });
+                    stitchIndex++;
+                }
+            }
+        }
+
+        /* const stitches = data.stitches.split(",");
         let lastID = 0;
 
         for (const stitch of stitches) {
@@ -147,7 +172,7 @@ class PatternLoader {
                 "dmcCode": "empty"
             });
             lastID++;
-        }
+        } */
 
         return {
             stitches: newStitches,
@@ -166,7 +191,35 @@ class PatternLoader {
         let currentCode = "";
         let startId = 0;
 
-        for (let i = 0; i < data.stitches.length; i++) {
+        // New format: 
+        //   - Rows separated by ":"
+        //   - Stitches in a row show how many consecutive stitches of the same color there are followed by the color ID
+        for (let y = 0; y < data.properties.height; y++) {
+            if (y > 0) newStitches += ":";
+            let count = 0;
+            let lastCode = null;
+            for (let x = 0; x < data.properties.width; x++) {
+                const stitch = data.stitches[y * data.properties.width + x];
+                const code = stitch.dmcCode;
+                if (code === lastCode) {
+                    count++;
+                } else {
+                    if (lastCode !== null) {
+                        if (newStitches) newStitches += ",";
+                        newStitches += `${count}-${this.getIDFromCode(data, lastCode)}`;
+                    }
+                    lastCode = code;
+                    count = 1;
+                }
+            }
+            // Write remaining stitches in the row
+            if (lastCode !== null) {
+                if (newStitches) newStitches += ",";
+                newStitches += `${count}-${this.getIDFromCode(data, lastCode)}`;
+            }
+        }
+
+        /* for (let i = 0; i < data.stitches.length; i++) {
             const stitch = data.stitches[i];
             const code = stitch.dmcCode;
 
@@ -185,7 +238,7 @@ class PatternLoader {
         if (currentCode) {
             if (newStitches) newStitches += ",";
             newStitches += `${startId}-${this.getIDFromCode(data, currentCode)}`;
-        }
+        } */
 
         return {
             stitches: newStitches,
