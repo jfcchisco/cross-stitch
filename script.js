@@ -375,24 +375,6 @@ function previewPath(type) {
 
 function assignClusters(stitchesList) {
     // Assign clusters to a list of highlighted stitches
-    /* let clusterCounter = 0;
-    for(let i=0; i < stitchesList.length; i++) {
-        let s = stitchesList[i];
-        if(s.cluster == 0) {
-            clusterCounter += 1;
-            let neighborList = gridManager.getConnectedTiles(s.X, s.Y, s.code);
-            for(let j=0; j<neighborList.length; j++) {
-                for(let k=0; k<stitchesList.length; k++) {
-                    let s2 = stitchesList[k];
-                    if(s2.X == neighborList[j].x && s2.Y == neighborList[j].y) {
-                        stitchesList[k].cluster = clusterCounter;
-                    }
-                }
-            }
-        }
-    }
-    return stitchesList; */
-
     let clusterCounter = 0;
     // Create a map for fast coordinate lookup
     const stitchMap = new Map();
