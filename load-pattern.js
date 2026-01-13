@@ -129,50 +129,7 @@ class PatternLoader {
                     stitchIndex++;
                 }
             }
-        }
-
-        /* const stitches = data.stitches.split(",");
-        let lastID = 0;
-
-        for (const stitch of stitches) {
-            const [id, dmcID] = stitch.split("-");
-            const stitchId = parseInt(id);
-
-            // Fill in missing stitches with empty
-            while (lastID < stitchId) {
-                const x = lastID % data.properties.width;
-                const y = Math.floor(lastID / data.properties.width);
-                newStitches.push({
-                    "X": x,
-                    "Y": y,
-                    "dmcCode": this.getCodeFromId(data, dmcID)
-                });
-                lastID++;
-            }
-
-            // Add the actual stitch
-            const x = stitchId % data.properties.width;
-            const y = Math.floor(stitchId / data.properties.width);
-            newStitches.push({
-                "X": x,
-                "Y": y,
-                "dmcCode": this.getCodeFromId(data, dmcID)
-            });
-            lastID++;
-        }
-
-        // Fill remaining stitches if needed
-        const totalStitches = data.properties.width * data.properties.height;
-        while (lastID < totalStitches) {
-            const x = lastID % data.properties.width;
-            const y = Math.floor(lastID / data.properties.width);
-            newStitches.push({
-                "X": x,
-                "Y": y,
-                "dmcCode": "empty"
-            });
-            lastID++;
-        } */
+        } 
 
         return {
             stitches: newStitches,
