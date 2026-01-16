@@ -20,23 +20,38 @@ let highCode = 0;
 
 let jsonFiles = ['json/cubs.json', 'json/liverpool.json', 'json/japan.json', 'json/northern.json', 'json/cuphead.json', 'json/dino.json', 'json/amsterdam.json', 'json/african.json', 'json/messi.json'];
 let currIndex = 0;
-let jsonFile = jsonFiles[currIndex];
+
+// Spinner functions
+function showSpinner(message='Loading pattern...') {
+    document.getElementById('loadingSpinner').style.display = 'flex';
+    document.getElementById('spinnerMessage').textContent = message;
+}
+
+function hideSpinner() {
+    document.getElementById('loadingSpinner').style.display = 'none';
+}
 
 window.onload = async function() {
     try {
+        showSpinner();
         const pattern = await patternLoader.loadPattern(jsonFiles[currIndex]);
         loadJSON(pattern);
     } catch (error) {
         console.error('Failed to load initial pattern:', error);
+    } finally {
+        hideSpinner();
     }
 }
 
 async function loadNextFile() {
     try {
+        showSpinner();
         const pattern = await patternLoader.loadNextPattern();
         loadJSON(pattern);
     } catch (error) {
         console.error('Failed to load next pattern:', error);
+    } finally {
+        hideSpinner();
     }
 }
 
@@ -61,17 +76,6 @@ function addChangesToJsonObject() {
         }
     })
     return;
-}
-
-function flossUsageClose() {
-    let modal = document.getElementById("myModal");
-    modal.style.display = "none";
-}
-
-function flossUsageOpen() {
-    uiManager.fillFlossUsage();
-    let modal = document.getElementById("myModal");
-    modal.style.display = "block";
 }
 
 function loadJSON(data) {
@@ -109,10 +113,13 @@ async function openFile() {
         const file = e.target.files[0];
         if(file) {
             try {
+                showSpinner();
                 const pattern = await patternLoader.loadFromFile(file);
                 loadJSON(pattern);
             } catch (error) {
                 alert('Error loading file: ' + error.message);
+            } finally {
+                hideSpinner();
             }
         }
     };
@@ -172,138 +179,98 @@ function preview(data) {
 function previewPath(type) {
     // This function should be called only when there is already a created canvas
     // with the highlighted color and highlight flag activated
-    const thresholdInput = document.getElementById('pathInput');
-    const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
+    showSpinner('Calculating path...');
     
-    let highStitches = gridManager.getHighlightedStitches(highCode);
-    highStitches = assignClusters(highStitches);
+    // Use setTimeout to allow the spinner to render before heavy computation
+    setTimeout(() => {
+        const thresholdInput = document.getElementById('pathInput');
+        const threshold = thresholdInput ? Number(thresholdInput.value) : 10;
     
-    let clusterNumbers = [];
-    highStitches.forEach(s => {
-        if(!clusterNumbers.includes(s.cluster)) {
-            clusterNumbers.push(s.cluster);
-        }
-    });
-
-    let canvas = document.getElementById("canvas");
-    let ctx = canvas.getContext('2d');
-
-    //Repeated drawing of stitches
-    let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
-    
-    ctx.clearRect(0,0, canvas.width, canvas.height)
-    ctx.fillStyle = "#ffffff"
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-    // Draw one rectangle as test
-    let s = highStitches[1];
-    ctx.fillStyle = "#000000";
-    ctx.fillRect(10,10,20,20);
-    
-    const tileCollection = document.getElementsByClassName("tile");
-
-    for (let i = 0; i < tileCollection.length; i++) {
-        let tileObj = tileCollection[i];
-        let code = tileObj.getAttribute('data-tile-code');
-        let x = Number(tileObj.getAttribute('data-tile-x'));
-        let y = Number(tileObj.getAttribute('data-tile-y'));
-        if(code == gridManager.highlightedColor) {
-            ctx.fillStyle = "#000000";;
-            ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
-        }
-        else {
-            ctx.fillStyle = "#ffffff";
-            ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
-        }
-    }
-
-    let clusterSequence = [];
-    let nextCluster = 0;
-    if(type == 0) {
-        // Closest to top-left
-        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, 0, 0);
-    }
-    else if(type == 1) {
-        // Closest to center
-        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, cols/2, rows/2);
-    }
-    else if(type == 2) {
-        // Closest to bottom-right
-        // let coordX = Number(prompt("X:", 0));
-        // let coordY = Number(prompt("Y:", 0));
-        let coordX = Number(document.getElementById("pathXInput").value);
-        let coordY = Number(document.getElementById("pathYInput").value);
-        if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
-            alert("Invalid X coordinate, using 0"); 
-            coordX = 0;
-        }
-        if(coordY == null || !Number.isInteger(coordY) || coordY > rows || coordY < 0) {
-            alert("Invalid Y coordinate, using 0");
-            coordY = 0;
-        }
-        nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, coordX, coordY);
-    }
-    else if(type == 3) {
-        nextCluster = clusterNumbers[Math.floor(Math.random() * clusterNumbers.length)];
-    }
-    
-    let closestCluster = 0;
-    while(clusterNumbers.length > 0) {
-        let dist2Next = [nextCluster, 0, Infinity, [0,0], [0,0]];
-        for (let i = 0; i < clusterNumbers.length; i++) {
-            let cNum = clusterNumbers[i];
-            let dist2Cluster = getDistBetweenClusters(nextCluster, cNum, highStitches);
-            if(dist2Cluster[2] < dist2Next[2] && dist2Cluster[2] != 0) {
-                dist2Next = dist2Cluster;
-                closestCluster = cNum;
+        let highStitches = gridManager.getHighlightedStitches(highCode);
+        highStitches = assignClusters(highStitches);
+        
+        let clusterNumbers = [];
+        highStitches.forEach(s => {
+            if(!clusterNumbers.includes(s.cluster)) {
+                clusterNumbers.push(s.cluster);
             }
-        }
+        });
 
-        if(dist2Next[2] <= threshold) {
-            clusterSequence.push(dist2Next);
-            if(clusterSequence.length == 1) {
-                let index = clusterNumbers.indexOf(nextCluster);
-                if (index > -1) {
-                    clusterNumbers.splice(index, 1);
-                }
-            }
-            nextCluster = closestCluster;
-            //remove from clusterNumbers
-            let index = clusterNumbers.indexOf(closestCluster);
-            if (index > -1) {
-                clusterNumbers.splice(index, 1);
-            }
-        }
-        else {
-            // Try a better path
-            // Go through the clusterSequence and find the summed
-            // distance to each pair
-            let newMinSum = dist2Next[2];
-            let betterOptionFlag = false;
-            let newSeq0 = [];
-            let newSeq1 = [];
-            let betterOptionIndex = -1;
-            for(let i = 0; i < clusterSequence.length; i++) {
-                let dist0 = getDistBetweenClusters(clusterSequence[i][0], closestCluster, highStitches);
-                let dist1 = getDistBetweenClusters(closestCluster, clusterSequence[i][1], highStitches);
-                let sumDist = dist0[2] + dist1[2];
-                if(sumDist < newMinSum) {
-                    // Found a better option
-                    newMinSum = sumDist;
-                    betterOptionFlag = true;
-                    newSeq0 = dist0;
-                    newSeq1 = dist1;
-                    betterOptionIndex = i;
-                }
-            }
-            if(betterOptionFlag) {
-                clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
-                let index = clusterNumbers.indexOf(closestCluster);
-                if (index > -1) {
-                    clusterNumbers.splice(index, 1);
-                }
+        let canvas = document.getElementById("canvas");
+        let ctx = canvas.getContext('2d');
+
+        //Repeated drawing of stitches
+        let box = Math.max(1, (Math.min(Math.floor(document.body.offsetHeight/rows), Math.floor(document.body.offsetWidth/cols))));
+        
+        ctx.clearRect(0,0, canvas.width, canvas.height)
+        ctx.fillStyle = "#ffffff"
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+        // Draw one rectangle as test
+        let s = highStitches[1];
+        ctx.fillStyle = "#000000";
+        ctx.fillRect(10,10,20,20);
+        
+        const tileCollection = document.getElementsByClassName("tile");
+
+        for (let i = 0; i < tileCollection.length; i++) {
+            let tileObj = tileCollection[i];
+            let code = tileObj.getAttribute('data-tile-code');
+            let x = Number(tileObj.getAttribute('data-tile-x'));
+            let y = Number(tileObj.getAttribute('data-tile-y'));
+            if(code == gridManager.highlightedColor) {
+                ctx.fillStyle = "#000000";;
+                ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
             }
             else {
+                ctx.fillStyle = "#ffffff";
+                ctx.fillRect(x * box, y * box, x * box + box, y * box + box);
+            }
+        }
+
+        let clusterSequence = [];
+        let nextCluster = 0;
+        if(type == 0) {
+            // Closest to top-left
+            nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, 0, 0);
+        }
+        else if(type == 1) {
+            // Closest to center
+            nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, cols/2, rows/2);
+        }
+        else if(type == 2) {
+            // Closest to bottom-right
+            // let coordX = Number(prompt("X:", 0));
+            // let coordY = Number(prompt("Y:", 0));
+            let coordX = Number(document.getElementById("pathXInput").value);
+            let coordY = Number(document.getElementById("pathYInput").value);
+            if(coordX == null || !Number.isInteger(coordX) || coordX > cols || coordX < 0) {
+                alert("Invalid X coordinate, using 0"); 
+                coordX = 0;
+            }
+            if(coordY == null || !Number.isInteger(coordY) || coordY > rows || coordY < 0) {
+                alert("Invalid Y coordinate, using 0");
+                coordY = 0;
+            }
+            nextCluster = getClosestClusterToPoint(clusterNumbers, highStitches, coordX, coordY);
+        }
+        else if(type == 3) {
+            nextCluster = clusterNumbers[Math.floor(Math.random() * clusterNumbers.length)];
+        }
+        
+        let closestCluster = 0;
+        while(clusterNumbers.length > 0) {
+            let dist2Next = [nextCluster, 0, Infinity, [0,0], [0,0]];
+            for (let i = 0; i < clusterNumbers.length; i++) {
+                let cNum = clusterNumbers[i];
+                let dist2Cluster = getDistBetweenClusters(nextCluster, cNum, highStitches);
+                if(dist2Cluster[2] < dist2Next[2] && dist2Cluster[2] != 0) {
+                    dist2Next = dist2Cluster;
+                    closestCluster = cNum;
+                }
+            }
+
+            if(dist2Next[2] <= threshold) {
                 clusterSequence.push(dist2Next);
                 if(clusterSequence.length == 1) {
                     let index = clusterNumbers.indexOf(nextCluster);
@@ -318,63 +285,115 @@ function previewPath(type) {
                     clusterNumbers.splice(index, 1);
                 }
             }
+            else {
+                // Try a better path
+                // Go through the clusterSequence and find the summed
+                // distance to each pair
+                let newMinSum = dist2Next[2];
+                let betterOptionFlag = false;
+                let newSeq0 = [];
+                let newSeq1 = [];
+                let betterOptionIndex = -1;
+                for(let i = 0; i < clusterSequence.length; i++) {
+                    let dist0 = getDistBetweenClusters(clusterSequence[i][0], closestCluster, highStitches);
+                    let dist1 = getDistBetweenClusters(closestCluster, clusterSequence[i][1], highStitches);
+                    let sumDist = dist0[2] + dist1[2];
+                    if(sumDist < newMinSum) {
+                        // Found a better option
+                        newMinSum = sumDist;
+                        betterOptionFlag = true;
+                        newSeq0 = dist0;
+                        newSeq1 = dist1;
+                        betterOptionIndex = i;
+                    }
+                }
+                if(betterOptionFlag) {
+                    clusterSequence.splice(betterOptionIndex, 1, newSeq0, newSeq1);
+                    let index = clusterNumbers.indexOf(closestCluster);
+                    if (index > -1) {
+                        clusterNumbers.splice(index, 1);
+                    }
+                }
+                else {
+                    clusterSequence.push(dist2Next);
+                    if(clusterSequence.length == 1) {
+                        let index = clusterNumbers.indexOf(nextCluster);
+                        if (index > -1) {
+                            clusterNumbers.splice(index, 1);
+                        }
+                    }
+                    nextCluster = closestCluster;
+                    //remove from clusterNumbers
+                    let index = clusterNumbers.indexOf(closestCluster);
+                    if (index > -1) {
+                        clusterNumbers.splice(index, 1);
+                    }
+                }
+            }
         }
-    }
-    // Draw circle on the initial point
-    ctx.beginPath();
-    ctx.arc(clusterSequence[0][3][0]*box + box/2, clusterSequence[0][3][1]*box + box/2, box, 0, 2 * Math.PI);
-    ctx.strokeStyle = "red";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    // Draw circle on the final point
-    let lastCluster = clusterSequence[clusterSequence.length - 1];
-    ctx.beginPath();   
-    ctx.arc(lastCluster[4][0]*box + box/2, lastCluster[4][1]*box + box/2, box, 0, 2 * Math.PI);
-    ctx.strokeStyle = "orange";
-    ctx.lineWidth = 2;
-    ctx.stroke();
-    // Draw path lines
-    let lineColor = "cyan";
-    clusterSequence.forEach(cluster => {
+        // Draw circle on the initial point
         ctx.beginPath();
-        ctx.moveTo(cluster[3][0]*box + box/2, cluster[3][1]*box + box/2);
-        ctx.lineTo(cluster[4][0]*box + box/2, cluster[4][1]*box + box/2);
-        if(lineColor == "cyan") {
-            lineColor = "greenyellow";
-        }
-        else {
-            lineColor = "cyan";
-        }
-        if(cluster[2] > threshold) {
-            ctx.strokeStyle = "red";
-        }
-        else {
-            ctx.strokeStyle = lineColor;
-        }
+        ctx.arc(clusterSequence[0][3][0]*box + box/2, clusterSequence[0][3][1]*box + box/2, box, 0, 2 * Math.PI);
+        ctx.strokeStyle = "red";
         ctx.lineWidth = 2;
         ctx.stroke();
-    })
-    // Copy to global variable
-    CLUSTER_SEQUENCE = clusterSequence;
-    THRESHOLD = threshold;
-    drawPreviewGridLines(box, ctx);
-
+        // Draw circle on the final point
+        let lastCluster = clusterSequence[clusterSequence.length - 1];
+        ctx.beginPath();   
+        ctx.arc(lastCluster[4][0]*box + box/2, lastCluster[4][1]*box + box/2, box, 0, 2 * Math.PI);
+        ctx.strokeStyle = "orange";
+        ctx.lineWidth = 2;
+        ctx.stroke();
+        // Draw path lines
+        let lineColor = "cyan";
+        clusterSequence.forEach(cluster => {
+            ctx.beginPath();
+            ctx.moveTo(cluster[3][0]*box + box/2, cluster[3][1]*box + box/2);
+            ctx.lineTo(cluster[4][0]*box + box/2, cluster[4][1]*box + box/2);
+            if(lineColor == "cyan") {
+                lineColor = "greenyellow";
+            }
+            else {
+                lineColor = "cyan";
+            }
+            if(cluster[2] > threshold) {
+                ctx.strokeStyle = "red";
+            }
+            else {
+                ctx.strokeStyle = lineColor;
+            }
+            ctx.lineWidth = 2;
+            ctx.stroke();
+        })
+        // Copy to global variable
+        CLUSTER_SEQUENCE = clusterSequence;
+        THRESHOLD = threshold;
+        drawPreviewGridLines(box, ctx);
+        hideSpinner();
+    }, 0);
 }
 
 function assignClusters(stitchesList) {
     // Assign clusters to a list of highlighted stitches
     let clusterCounter = 0;
-    for(let i=0; i < stitchesList.length; i++) {
+    // Create a map for fast coordinate lookup
+    const stitchMap = new Map();
+    stitchesList.forEach((stitch, index) => {
+        const key = `${stitch.X},${stitch.Y}`;
+        stitchMap.set(key, index);
+        stitch.cluster = 0; // Reset clusters
+    });
+
+    for(let i = 0; i < stitchesList.length; i++) {
         let s = stitchesList[i];
         if(s.cluster == 0) {
             clusterCounter += 1;
             let neighborList = gridManager.getConnectedTiles(s.X, s.Y, s.code);
-            for(let j=0; j<neighborList.length; j++) {
-                for(let k=0; k<stitchesList.length; k++) {
-                    let s2 = stitchesList[k];
-                    if(s2.X == neighborList[j].x && s2.Y == neighborList[j].y) {
-                        stitchesList[k].cluster = clusterCounter;
-                    }
+            for(let neighbor of neighborList) {
+                const key = `${neighbor.x},${neighbor.y}`;
+                const index = stitchMap.get(key);
+                if(index !== undefined) {
+                    stitchesList[index].cluster = clusterCounter;
                 }
             }
         }
