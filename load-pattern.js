@@ -267,6 +267,20 @@ class PatternLoader {
     }
 
     /**
+     * Get cols
+     */
+    getCols() {
+        return this.currentPattern ? this.currentPattern.properties.width : 0;
+    }
+
+    /**
+     * Get rows
+     */
+    getRows() {
+        return this.currentPattern ? this.currentPattern.properties.height : 0;
+    }   
+    
+    /**
      * Get pattern statistics
      * @returns {Object} Pattern information
      */

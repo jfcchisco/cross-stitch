@@ -274,6 +274,7 @@ class GridManager {
             let newHeight = height + 2;
             this.setHeight(newHeight);
         }
+        this.uiManager.drawSVG();
     }
 
     zoomOut() {
@@ -283,6 +284,7 @@ class GridManager {
             let newHeight = height - 2;
             this.setHeight(newHeight);
         }
+        this.uiManager.drawSVG();
     }
 
     zoomReset() {
@@ -293,6 +295,7 @@ class GridManager {
         else {
             this.setHeight(this.defaultHeight);
         }
+        this.uiManager.drawSVG();
     }
 
 
@@ -368,7 +371,6 @@ class GridManager {
     }
 
     selectColor(colorCode, symbol) {
-        console.log(colorCode, symbol);
         // Update global highlight state
         this.highlightedColor = colorCode;
         this.highlightedSymbol = symbol;
